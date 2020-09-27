@@ -1,5 +1,8 @@
 #include "list.h"
 
+// Initiate global static array 
+void* nodesInMemory[LIST_MAX_NUM_NODES];
+
 // Makes a new, empty list, and returns its reference on success. 
 // Returns a NULL pointer on failure.
 List* List_create()
@@ -11,12 +14,17 @@ List* List_create()
 // Returns the number of items in pList.
 int List_count(List* pList)
 {
-    return 0;
+    int itemsNum = 0;
+    return itemsNum;
 }
 
 // Returns a pointer to the first item in pList and makes the first item the current item.
 // Returns NULL and sets current item to NULL if list is empty.
-void* List_first(List* pList);
+void* List_first(List* pList) 
+{
+    void* temp;
+    return temp;
+}
 
 // Returns a pointer to the last item in pList and makes the last item the current item.
 // Returns NULL and sets current item to NULL if list is empty.
@@ -57,7 +65,7 @@ void* List_curr(List* pList)
 // Returns 0 on success, -1 on failure.
 int List_add(List* pList, void* pItem)
 {
-    return 0;
+    return LIST_SUCCESS;
 }
 
 // Adds item to pList directly before the current item, and makes the new item the current one. 
@@ -66,21 +74,21 @@ int List_add(List* pList, void* pItem)
 // Returns 0 on success, -1 on failure.
 int List_insert(List* pList, void* pItem)
 {
-    return 0;
+    return LIST_SUCCESS;
 }
 
 // Adds item to the end of pList, and makes the new item the current one. 
 // Returns 0 on success, -1 on failure.
 int List_append(List* pList, void* pItem)
 {
-    return 0;
+    return LIST_SUCCESS;
 }
 
 // Adds item to the front of pList, and makes the new item the current one. 
 // Returns 0 on success, -1 on failure.
 int List_prepend(List* pList, void* pItem)
 {
-    return 0;
+    return LIST_SUCCESS;
 }
 
 // Return current item and take it out of pList. Make the next item the current one.

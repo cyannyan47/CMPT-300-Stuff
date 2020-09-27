@@ -12,6 +12,8 @@
 typedef struct Node_s Node;
 struct Node_s {
     // TODO: You should change this
+    void* item;
+    Node* nextNode;
 };
 
 enum ListOutOfBounds {
@@ -21,6 +23,9 @@ enum ListOutOfBounds {
 typedef struct List_s List;
 struct List_s{
     // TODO: You should change this!
+    Node* firstNode;
+    Node* currentNode;
+    Node* lastNode;
 };
 
 // Maximum number of unique lists the system can support
