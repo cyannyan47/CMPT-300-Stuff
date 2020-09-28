@@ -1,7 +1,7 @@
 CC=cc
 CXX=cc
 
-CCFLAGS= -g -std=c99 -Wall -Werror
+CCFLAGS= -g -std=c99 -Wall
 
 # action
 all: mainTest test
