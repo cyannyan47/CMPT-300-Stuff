@@ -22,18 +22,17 @@ struct Node_s {
 typedef enum ListOutOfBounds ListState;
 enum ListOutOfBounds {
     LIST_OOB_START,
-    LIST_OOB_END,
-    LIST_NOT_OOB
+    LIST_OOB_END
 };
 
 typedef struct List_s List;
 struct List_s{
     // TODO: You should change this!
+    // Keep track of the first node in the List
     Node* pNodeFirst;
     Node* pNodeCurrent;
     Node* pNodeLast;
     int count;
-    ListState listState;
 };
 
 void Test_playground();

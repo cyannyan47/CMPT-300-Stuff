@@ -42,6 +42,8 @@ static List* availableListHeadsQueue[LIST_MAX_NUM_HEADS];
 static void queue_create();
 static int queue_is_full();
 static int queue_is_empty();
+// Note: listHead needs to be reset to default node values before calling
+// Default node values: NULL for all pointers, 0 for count
 static int queue_enqueue(List* listHead);
 static List* queue_dequeue();
 static List* queue_front();
@@ -54,10 +56,14 @@ static void initiate_nodes_doubly_linked_list();
 static void initiate_available_list_heads();
 
 // Used in List_create, List_add
-// Get an available node
-// Will manage the node doubly linked list
+// Get an available node by taking a node from node available array
+// This method will maintain the structure of the doubly linked list after pop
 static Node* pop_available_node();
 
+// Used in List_remove
+// Return a removed node from a list to the node available doubly linked list
+// This method will maintain the structure of the doubly linked list after push 
+// Node clean up is done here
 static void push_back_to_available(Node* nodeBackToAvailable);
 
 // Flag for checking if List_create has been called before
@@ -67,29 +73,30 @@ static bool isFirstListCreate = false;
 // Returns a NULL pointer on failure.
 List* List_create()
 {
+    // One time setup
     if (!isFirstListCreate)
     {
         // Initiate doubly linked list of nodes
         initiate_nodes_doubly_linked_list();
         // Initiate list head queue
         initiate_available_list_heads();
+
+        isFirstListCreate = true;
     }
 
     
     List* newListHead = queue_dequeue();
+    // Case run out of list heads
     if (newListHead == NULL) 
     {
         return NULL;
     }
-
-    Node* nodeAddress = pop_available_node();
     
     // Initiate pointers to the first node of the list
-    newListHead->pNodeCurrent = nodeAddress;
-    newListHead->pNodeFirst = nodeAddress;
-    newListHead->pNodeLast = nodeAddress;
-    newListHead->count = 1;
-    newListHead->listState = LIST_NOT_OOB;
+    newListHead->pNodeCurrent = NULL;
+    newListHead->pNodeFirst = NULL;
+    newListHead->pNodeLast = NULL;
+    newListHead->count = 0;
 
     return newListHead;
 }
@@ -97,24 +104,21 @@ List* List_create()
 // Returns the number of items in pList.
 int List_count(List* pList)
 {
-    int itemsNum = 0;
-    return itemsNum;
+    return pList->count;
 }
 
 // Returns a pointer to the first item in pList and makes the first item the current item.
 // Returns NULL and sets current item to NULL if list is empty.
 void* List_first(List* pList) 
 {
-    void* temp;
-    return temp;
+    return pList->pNodeFirst->item;
 }
 
 // Returns a pointer to the last item in pList and makes the last item the current item.
 // Returns NULL and sets current item to NULL if list is empty.
 void* List_last(List* pList)
 {
-    void* temp;
-    return temp;
+    return pList->pNodeLast->item;
 }
 
 // Advances pList's current item by one, and returns a pointer to the new current item.
@@ -122,8 +126,22 @@ void* List_last(List* pList)
 // is returned and the current item is set to be beyond end of pList.
 void* List_next(List* pList)
 {
-    void* temp;
-    return temp;
+    // Case where out of bound before the list head
+    if (pList->pNodeCurrent == LIST_OOB_START)
+    {
+        pList->pNodeCurrent = pList->pNodeFirst;
+        return pList->pNodeFirst->item;
+    }
+
+    // Case where the next node of the current node will be out of bound
+    if (pList->pNodeCurrent->nextNode == NULL)
+    {
+        pList->pNodeCurrent = LIST_OOB_END;
+        return NULL;
+    }
+    pList->pNodeCurrent = pList->pNodeCurrent->nextNode;
+    
+    return pList->pNodeCurrent->item;
 }
 
 // Backs up pList's current item by one, and returns a pointer to the new current item. 
@@ -131,15 +149,28 @@ void* List_next(List* pList)
 // is returned and the current item is set to be before the start of pList.
 void* List_prev(List* pList)
 {
-    void* temp;
-    return temp;
+    // Case where out of bound after the list end
+    if (pList->pNodeCurrent == LIST_OOB_END)
+    {
+        pList->pNodeCurrent = pList->pNodeLast;
+        return pList->pNodeLast->item;
+    }
+
+    // Case where the previous node of the current node will be out of bound
+    if (pList->pNodeCurrent->previousNode == NULL)
+    {
+        pList->pNodeCurrent = LIST_OOB_START;
+        return NULL;
+    }
+
+    pList->pNodeCurrent = pList->pNodeCurrent->previousNode;
+    return pList->pNodeCurrent->item;
 }
 
 // Returns a pointer to the current item in pList.
 void* List_curr(List* pList)
 {
-    void* temp;
-    return temp;
+    return pList->pNodeCurrent->item;
 }
 
 // Adds the new item to pList directly after the current item, and makes item the current item. 
@@ -148,6 +179,78 @@ void* List_curr(List* pList)
 // Returns 0 on success, -1 on failure.
 int List_add(List* pList, void* pItem)
 {
+    // Getting a node from available nodes
+    Node* nodeToAdd = pop_available_node();
+
+    // Out of nodes
+    if (nodeToAdd == NULL)
+    {
+        return LIST_FAIL;
+    }
+
+    // Configuring nodeToAdd
+    // Remember: the default pointers of node are all NULL
+    nodeToAdd->item = pItem;
+
+    // Case first node of the list
+    if (pList->count == 0)
+    {
+        // Updating list info
+        pList->pNodeFirst = nodeToAdd;
+        pList->pNodeLast = nodeToAdd;
+        pList->pNodeCurrent = nodeToAdd;
+        pList->count += 1;
+
+        return LIST_SUCCESS;
+    }
+
+    // Case: current item is out of bound after the list
+    // or adding nodeToAdd to after the last node
+    if (pList->pNodeCurrent == LIST_OOB_END || pList->pNodeCurrent == pList->pNodeLast)
+    {
+        // Linking node to add to after the last node
+        nodeToAdd->previousNode = pList->pNodeLast;
+        pList->pNodeLast->nextNode = nodeToAdd;
+
+        // Updating the last node pointer
+        pList->pNodeLast = nodeToAdd;
+        pList->count += 1;
+
+        // Make newNode the current item
+        pList->pNodeCurrent = nodeToAdd;
+
+        return LIST_SUCCESS;
+    }
+
+    // Case: current item is out of bound before the list
+    if (pList->pNodeCurrent == LIST_OOB_START)
+    {
+        // Linking node to add to before the first node
+        nodeToAdd->nextNode = pList->pNodeFirst;
+        pList->pNodeFirst->previousNode = nodeToAdd;
+
+        // Updating the first node pointer
+        pList->pNodeFirst = nodeToAdd;
+        pList->count += 1;
+
+        // Make newNode the current item
+        pList->pNodeCurrent = nodeToAdd;
+
+        return LIST_SUCCESS;
+    }
+
+    // Normal case: adding a node after the current item node
+
+    // Linking nodeToAdd in between pCurrentNode and after pCurrentNode
+    nodeToAdd->nextNode = pList->pNodeCurrent->nextNode;
+    nodeToAdd->previousNode = pList->pNodeCurrent;
+
+    nodeToAdd->nextNode->previousNode = nodeToAdd;
+    nodeToAdd->previousNode->nextNode = nodeToAdd;
+
+    // Make newNode the current item
+    pList->pNodeCurrent = nodeToAdd;
+
     return LIST_SUCCESS;
 }
 
@@ -157,6 +260,77 @@ int List_add(List* pList, void* pItem)
 // Returns 0 on success, -1 on failure.
 int List_insert(List* pList, void* pItem)
 {
+    // Getting a node from available nodes
+    Node* nodeToAdd = pop_available_node();
+
+    // Out of nodes
+    if (nodeToAdd == NULL)
+    {
+        return LIST_FAIL;
+    }
+
+    // Configuring nodeToAdd
+    // Remember: the default pointers of node are all NULL
+    nodeToAdd->item = pItem;
+
+    // Case first node of the list
+    if (pList->count == 0)
+    {
+        // Updating list info
+        pList->pNodeFirst = nodeToAdd;
+        pList->pNodeLast = nodeToAdd;
+        pList->pNodeCurrent = nodeToAdd;
+        pList->count += 1;
+
+        return LIST_SUCCESS;
+    }
+
+    // Case: current item is out of bound after the list
+    if (pList->pNodeCurrent == LIST_OOB_END)
+    {
+        // Linking node to add to after the last node
+        nodeToAdd->previousNode = pList->pNodeLast;
+        pList->pNodeLast->nextNode = nodeToAdd;
+
+        // Updating the last node pointer
+        pList->pNodeLast = nodeToAdd;
+        pList->count += 1;
+
+        // Make newNode the current item
+        pList->pNodeCurrent = nodeToAdd;
+
+        return LIST_SUCCESS;
+    }
+
+    // Case: current item is out of bound before the list
+    if (pList->pNodeCurrent == LIST_OOB_START || pList->pNodeCurrent == pList->pNodeFirst)
+    {
+        // Linking node to add to before the first node
+        nodeToAdd->nextNode = pList->pNodeFirst;
+        pList->pNodeFirst->previousNode = nodeToAdd;
+
+        // Updating the first node pointer
+        pList->pNodeFirst = nodeToAdd;
+        pList->count += 1;
+
+        // Make newNode the current item
+        pList->pNodeCurrent = nodeToAdd;
+
+        return LIST_SUCCESS;
+    }
+
+    // Normal case: adding a node after the current item node
+
+    // Linking nodeToAdd in between pCurrentNode and before pCurrentNode
+    nodeToAdd->nextNode = pList->pNodeCurrent;
+    nodeToAdd->previousNode = pList->pNodeCurrent->previousNode;
+
+    nodeToAdd->nextNode->previousNode = nodeToAdd;
+    nodeToAdd->previousNode->nextNode = nodeToAdd;
+
+    // Make newNode the current item
+    pList->pNodeCurrent = nodeToAdd;
+
     return LIST_SUCCESS;
 }
 
@@ -164,6 +338,42 @@ int List_insert(List* pList, void* pItem)
 // Returns 0 on success, -1 on failure.
 int List_append(List* pList, void* pItem)
 {
+    // Getting a node from available nodes
+    Node* nodeToAdd = pop_available_node();
+
+    // Out of nodes
+    if (nodeToAdd == NULL)
+    {
+        return LIST_FAIL;
+    }
+
+    // Configuring nodeToAdd
+    // Remember: the default pointers of node are all NULL
+    nodeToAdd->item = pItem;
+
+    // Case first node of the list
+    if (pList->count == 0)
+    {
+        // Updating list info
+        pList->pNodeFirst = nodeToAdd;
+        pList->pNodeLast = nodeToAdd;
+        pList->pNodeCurrent = nodeToAdd;
+        pList->count += 1;
+
+        return LIST_SUCCESS;
+    }
+
+    // Linking node to add to after the last node
+    nodeToAdd->previousNode = pList->pNodeLast;
+    pList->pNodeLast->nextNode = nodeToAdd;
+
+    // Updating the last node pointer
+    pList->pNodeLast = nodeToAdd;
+    pList->count += 1;
+
+    // Make newNode the current item
+    pList->pNodeCurrent = nodeToAdd;
+
     return LIST_SUCCESS;
 }
 
@@ -171,6 +381,42 @@ int List_append(List* pList, void* pItem)
 // Returns 0 on success, -1 on failure.
 int List_prepend(List* pList, void* pItem)
 {
+    // Getting a node from available nodes
+    Node* nodeToAdd = pop_available_node();
+
+    // Out of nodes
+    if (nodeToAdd == NULL)
+    {
+        return LIST_FAIL;
+    }
+
+    // Configuring nodeToAdd
+    // Remember: the default pointers of node are all NULL
+    nodeToAdd->item = pItem;
+
+    // Case first node of the list
+    if (pList->count == 0)
+    {
+        // Updating list info
+        pList->pNodeFirst = nodeToAdd;
+        pList->pNodeLast = nodeToAdd;
+        pList->pNodeCurrent = nodeToAdd;
+        pList->count += 1;
+
+        return LIST_SUCCESS;
+    }
+
+    // Linking node to add to before the first node
+    nodeToAdd->nextNode = pList->pNodeFirst;
+    pList->pNodeFirst->previousNode = nodeToAdd;
+
+    // Updating the first node pointer
+    pList->pNodeFirst = nodeToAdd;
+    pList->count += 1;
+
+    // Make newNode the current item
+    pList->pNodeCurrent = nodeToAdd;
+
     return LIST_SUCCESS;
 }
 
@@ -179,8 +425,42 @@ int List_prepend(List* pList, void* pItem)
 // then do not change the pList and return NULL.
 void* List_remove(List* pList)
 {
-    void* temp;
-    return temp;
+    // Case: List is already empty
+    if (pList->count == 0)
+    {
+        return NULL;
+    }
+
+    // Case: current node is OOB
+    if (pList->pNodeCurrent == LIST_OOB_END || pList->pNodeCurrent == LIST_OOB_START)
+    {
+        return NULL;
+    }
+
+    Node* nodeToRemove = pList->pNodeCurrent;
+
+    // Case: current node is the last node
+    if (nodeToRemove == pList->pNodeLast)
+    {
+        // Detach nodeToRemove from the List
+        nodeToRemove->previousNode->nextNode = NULL;
+
+        void* nodeToRemoveItem = nodeToRemove->item;
+        // Clean up is done in push_
+        push_back_to_available(nodeToRemove);
+
+        return nodeToRemoveItem;
+    }
+
+    // Linking the previous and next node of nodeToRemove
+    nodeToRemove->previousNode->nextNode = nodeToRemove->nextNode;
+    nodeToRemove->nextNode->previousNode = nodeToRemove->previousNode;
+
+    void* nodeToRemoveItem = nodeToRemove->item;
+
+    push_back_to_available(nodeToRemove);
+
+    return nodeToRemoveItem;
 }
 
 // Adds pList2 to the end of pList1. The current pointer is set to the current pointer of pList1. 
@@ -188,6 +468,65 @@ void* List_remove(List* pList)
 // for future operations.
 void List_concat(List* pList1, List* pList2)
 {
+    // Case: List 2 is empty
+    // return pList2 back to the List queue
+    // Don't care about List 1
+    if (pList2->count == 0)
+    {
+        // Clean up list2
+        pList2->pNodeCurrent = NULL;
+        pList2->pNodeFirst = NULL;
+        pList2->pNodeLast = NULL;
+        // Return list2 back to list queue
+        queue_enqueue(pList2);
+
+        return;
+    }
+
+    // Case: List 1 is empty
+    // Assign pointer to list 2 pointer to list 1
+    // Reset List 2 pointer 
+    if (pList1->count == 0)
+    {
+        // Hard copy list 2 stuff to list 1
+        pList1->count = pList2->count;
+        pList1->pNodeFirst = pList2->pNodeFirst;
+        pList1->pNodeCurrent = pList2->pNodeCurrent;
+        pList1->pNodeLast = pList2->pNodeLast;
+
+        // Clean list 2
+        pList2->count = 0;
+        pList2->pNodeFirst = NULL;
+        pList2->pNodeCurrent = NULL;
+        pList2->pNodeLast = NULL;
+
+        // Return list 2 back to list queue
+        queue_enqueue(pList2);
+
+        return;
+    }
+
+    // Normal case
+    // Both List 1 and List 2 have nodes
+
+    // Link last node of list 1 to first node of list 2
+    pList1->pNodeLast->nextNode = pList2->pNodeFirst;
+    pList2->pNodeFirst->previousNode = pList1->pNodeLast;
+
+    // Updating List 1 info
+    pList1->count = pList1->count + pList2->count;
+    pList1->pNodeLast = pList2->pNodeLast;
+
+    // Cleaning List 2 info to return to available list queue
+    pList2->count = 0;
+    pList2->pNodeFirst = NULL;
+    pList2->pNodeCurrent = NULL;
+    pList2->pNodeLast = NULL;
+
+    // Return list 2 back to list queue
+    queue_enqueue(pList2);
+
+    return;
 
 }
 
@@ -251,12 +590,12 @@ static int queue_is_empty()
 
 static int queue_enqueue(List* listHead)
 {
-    if (queue_is_empty())
+    if (queue_is_full())
     {
         return QUEUE_FAIL;
     }
 
-    queueRear = (queueRear + 1 ) % queueCapacity;
+    queueRear = (queueRear + 1) % queueCapacity;
     queueSize += 1;
     availableListHeadsQueue[queueRear] = listHead;
     return QUEUE_SUCCESS;
@@ -306,7 +645,7 @@ static Node* pop_available_node()
     // Move whereNodeAvailable to the next node
     whereNodeAvailable = return_node->nextNode;
 
-    // Resetting return_node
+    // Resetting/Cleaning return_node before pop out for list
     return_node->item = NULL;
     return_node->nextNode = NULL;
     return_node->previousNode = NULL;
@@ -338,13 +677,18 @@ static void push_back_to_available(Node* nodeBackToAvailable)
         return;
     }
 
+    // Maintain the doubly linked list
     nodeBackToAvailable->nextNode = whereNodeAvailable;
     whereNodeAvailable->previousNode = nodeBackToAvailable;
+
+    // Point to the newest available node
+    whereNodeAvailable = nodeBackToAvailable;
 
 }
 
 // Initializers
 
+// Initiate all nodes with default values
 static void initiate_nodes_doubly_linked_list()
 {
     // Initialize all nodes in availableNodes
@@ -373,6 +717,8 @@ static void initiate_nodes_doubly_linked_list()
     whereNodeAvailable = &availableNodes[0];
 }
 
+// Initiate all list heads with default values
+// Default values: NULL for all pointers, 0 for count
 static void initiate_available_list_heads()
 {
     for (int i = 0; i < LIST_MAX_NUM_HEADS; i++)
@@ -381,7 +727,6 @@ static void initiate_available_list_heads()
         availableListHeads[i].pNodeCurrent = NULL;
         availableListHeads[i].pNodeFirst = NULL;
         availableListHeads[i].pNodeLast = NULL;
-        availableListHeads[i].listState = LIST_NOT_OOB;
     }
 
     queue_create();
