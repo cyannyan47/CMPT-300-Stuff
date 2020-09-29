@@ -472,12 +472,14 @@ int List_prepend(List* pList, void* pItem)
 void* List_remove(List* pList)
 {
     // Case: List is already empty
+    printf("Check count\n");
     if (pList->count == 0)
     {
         return NULL;
     }
 
     // Case: current node is OOB
+    printf("Check OOB\n");
     if (pList->pNodeCurrent == P_NODE_OOB_END || pList->pNodeCurrent == P_NODE_OOB_START)
     {
         return NULL;
@@ -486,10 +488,17 @@ void* List_remove(List* pList)
     Node* nodeToRemove = pList->pNodeCurrent;
 
     // Case: current node is the last node
+    printf("Check last node\n");
     if (nodeToRemove == pList->pNodeLast)
     {
+        printf("Inside last node\n");
         // Detach nodeToRemove from the List
         nodeToRemove->previousNode->nextNode = NULL;
+        
+        // Update list info
+        pList->pNodeCurrent = P_NODE_OOB_END;
+        pList->pNodeLast = nodeToRemove->previousNode;
+        pList->count -= 1;
 
         void* nodeToRemoveItem = nodeToRemove->item;
         // Clean up is done in push_
@@ -498,12 +507,33 @@ void* List_remove(List* pList)
         return nodeToRemoveItem;
     }
 
+    if (nodeToRemove == pList->pNodeFirst)
+    {
+        printf("Inside first node\n");
+        // Detach nodeToRemove from the List
+        nodeToRemove->nextNode->previousNode = NULL;
+
+        // Update list info
+        pList->pNodeCurrent = nodeToRemove->nextNode;
+        pList->pNodeFirst = nodeToRemove->nextNode;
+        pList->count -= 1;
+
+        void* nodeToRemoveItem = nodeToRemove->item;
+        // Clean up is done in push_
+        push_back_to_available(nodeToRemove);
+
+        return nodeToRemoveItem;
+    }
     // Linking the previous and next node of nodeToRemove
     nodeToRemove->previousNode->nextNode = nodeToRemove->nextNode;
     nodeToRemove->nextNode->previousNode = nodeToRemove->previousNode;
 
-    void* nodeToRemoveItem = nodeToRemove->item;
+    // Update list info
+    pList->pNodeCurrent = nodeToRemove->nextNode;
+    pList->count -= 1;
 
+    void* nodeToRemoveItem = nodeToRemove->item;
+    printf("Before push_back\n");
     push_back_to_available(nodeToRemove);
 
     return nodeToRemoveItem;
@@ -583,8 +613,9 @@ void List_concat(List* pList1, List* pList2)
 void List_free(List* pList, FREE_FN pItemFreeFn)
 {
     pList->pNodeCurrent = pList->pNodeLast;
-    while(pList->count > 1) 
+    for (pList->count; pList->count > 0; )
     {
+        printf("Count %d\n", pList->count);
         Node* pNodeToFree = pList->pNodeCurrent;
         pList->pNodeCurrent = pList->pNodeCurrent->previousNode;
 
@@ -592,17 +623,36 @@ void List_free(List* pList, FREE_FN pItemFreeFn)
         (*pItemFreeFn)(pNodeToFree->item);
         push_back_to_available(pNodeToFree);
 
-        pList->count -= 1;
+        pList->count--;
+        printf("After subtract count %d\n", pList->count);
     }
+    // while(pList->pNodeCurrent != pList->pNodeFirst) 
+    // {
+    //     printf("Count %d\n", pList->count);
+    //     Node* pNodeToFree = pList->pNodeCurrent;
+    //     pList->pNodeCurrent = pList->pNodeCurrent->previousNode;
+
+    //     // Freeing the item inside the node
+    //     (*pItemFreeFn)(pNodeToFree->item);
+    //     push_back_to_available(pNodeToFree);
+
+    //     pList->count--;
+    //     printf("After subtract count %d\n", pList->count);
+    // }
+    printf("After while loop\n");
 
     if (pList->count == 1 && pList->pNodeFirst == pList->pNodeLast)
     {
+        printf("Count qafkyfafgjg %d\n", pList->count);
+        if (pList->pNodeFirst == NULL)
+        {
+            printf("First node exists\n");
+        }
         (*pItemFreeFn)(pList->pNodeFirst->item);
         push_back_to_available(pList->pNodeFirst);
-
         pList->count = 0;
     }
-
+    
     pList->pNodeFirst = NULL;
     pList->pNodeCurrent = NULL;
     pList->pNodeLast = NULL;
@@ -623,7 +673,11 @@ void* List_trim(List* pList)
 
     void* itemToReturn = pList->pNodeLast->item;
     Node* pNodeToFree = pList->pNodeLast;
+
     pList->pNodeLast = pList->pNodeLast->previousNode;
+    pList->pNodeCurrent = pList->pNodeLast;
+    pList->count -= 1;
+
     push_back_to_available(pNodeToFree);
     return itemToReturn;
 }
@@ -713,7 +767,7 @@ static int queue_enqueue(List* listHead)
 
 static List* queue_dequeue()
 {
-    if (queue_is_full())
+    if (queue_is_empty())
     {
         return NULL;
     }
