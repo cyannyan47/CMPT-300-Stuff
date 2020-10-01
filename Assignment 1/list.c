@@ -258,12 +258,11 @@ int List_add(List* pList, void* pItem)
         nodeToAdd->previousNode = pList->pNodeLast;
         pList->pNodeLast->nextNode = nodeToAdd;
 
-        // Updating the last node pointer
-        pList->pNodeLast = nodeToAdd;
-        pList->count += 1;
-
+        // Updating pList info
         // Make newNode the current item
         pList->pNodeCurrent = nodeToAdd;
+        pList->pNodeLast = nodeToAdd;
+        pList->count += 1;
 
         return LIST_SUCCESS;
     }
@@ -275,12 +274,13 @@ int List_add(List* pList, void* pItem)
         nodeToAdd->nextNode = pList->pNodeFirst;
         pList->pNodeFirst->previousNode = nodeToAdd;
 
-        // Updating the first node pointer
+        // Updating pList info
+        // Make newNode the current item
+        pList->pNodeCurrent = nodeToAdd;
         pList->pNodeFirst = nodeToAdd;
         pList->count += 1;
 
-        // Make newNode the current item
-        pList->pNodeCurrent = nodeToAdd;
+
 
         return LIST_SUCCESS;
     }
@@ -295,7 +295,9 @@ int List_add(List* pList, void* pItem)
     nodeToAdd->previousNode->nextNode = nodeToAdd;
 
     // Make newNode the current item
+    // Updating pList info
     pList->pNodeCurrent = nodeToAdd;
+    pList->count += 1;
 
     return LIST_SUCCESS;
 }
@@ -338,12 +340,11 @@ int List_insert(List* pList, void* pItem)
         nodeToAdd->previousNode = pList->pNodeLast;
         pList->pNodeLast->nextNode = nodeToAdd;
 
-        // Updating the last node pointer
-        pList->pNodeLast = nodeToAdd;
-        pList->count += 1;
-
+        // Updating pList info
         // Make newNode the current item
         pList->pNodeCurrent = nodeToAdd;
+        pList->pNodeLast = nodeToAdd;
+        pList->count += 1;
 
         return LIST_SUCCESS;
     }
@@ -355,12 +356,11 @@ int List_insert(List* pList, void* pItem)
         nodeToAdd->nextNode = pList->pNodeFirst;
         pList->pNodeFirst->previousNode = nodeToAdd;
 
-        // Updating the first node pointer
-        pList->pNodeFirst = nodeToAdd;
-        pList->count += 1;
-
+        // Updating pList info
         // Make newNode the current item
         pList->pNodeCurrent = nodeToAdd;
+        pList->pNodeFirst = nodeToAdd;
+        pList->count += 1;
 
         return LIST_SUCCESS;
     }
@@ -375,7 +375,9 @@ int List_insert(List* pList, void* pItem)
     nodeToAdd->previousNode->nextNode = nodeToAdd;
 
     // Make newNode the current item
+    // Updating pList info
     pList->pNodeCurrent = nodeToAdd;
+    pList->count += 1;
 
     return LIST_SUCCESS;
 }
