@@ -10,7 +10,7 @@ int tests_run = 0;
 #define _assert(test) do { if (!(test)) { FAIL(); return 1; } } while(0)
 #define _verify(test) do { int r=test(); tests_run++; if(r) return r; } while(0)
 
-// For checking the "free" function called
+// For List_free tests
 static int howManyNodesFreed = 0;
 static void listRemoveFreeFn(void *pItem)
 {
@@ -18,7 +18,7 @@ static void listRemoveFreeFn(void *pItem)
     howManyNodesFreed++;
 }
 
-// For searching
+// For searching test
 static bool isIntEqual(void *pItem, void *pComparisonArg)
 {
     _assert(pItem != NULL);
