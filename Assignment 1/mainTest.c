@@ -1,30 +1,20 @@
-/**
- * Sample test routine for executing each function at least once.
- * Copyright Brian Fraser, 2020
- */
-
 #include "list.h"
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 
-// Macro for custom testing; does exit(1) on failure.
-#define CHECK(condition)                                                                          \
-    do                                                                                            \
-    {                                                                                             \
-        if (!(condition))                                                                         \
-        {                                                                                         \
-            printf("ERROR: %s (@%d): failed condition \"%s\"\n", __func__, __LINE__, #condition); \
-            exit(1);                                                                              \
-        }                                                                                         \
-    } while (0)
+// Macro for custom testing, taken from https://eradman.com/posts/tdd-in-c.html
+int tests_run = 0;
+#define FAIL() printf("\nFailure in %s() line %d\n", __func__, __LINE__)
+#define _assert(test) do { if (!(test)) { FAIL(); return 1; } } while(0)
+#define _verify(test) do { int r=test(); tests_run++; if(r) return r; } while(0)
 
 // For checking the "free" function called
 static int complexTestFreeCounter = 0;
 static void complexTestFreeFn(void *pItem)
 {
-    CHECK(pItem != NULL);
+    _assert(pItem != NULL);
     complexTestFreeCounter++;
 }
 
@@ -34,121 +24,68 @@ static bool itemEquals(void *pItem, void *pArg)
     return (pItem == pArg);
 }
 
-static void testComplex()
-{
-    // Empty list
-    printf("Empty list\n");
+int crud_tests() {
     List *pList = List_create();
-    CHECK(pList != NULL);
-    CHECK(List_count(pList) == 0);
+    _assert(pList != NULL);
+    _assert(List_count(pList) == 0);
+    
+    // Check empty list
+    _assert(List_first(pList) == NULL);
+    _assert(List_last(pList) == NULL);
+    _assert(List_next(pList) == NULL);
+    _assert(List_prev(pList) == NULL);
+    _assert(List_curr(pList) == NULL);
 
-    // Add
-    printf("Add 41\n");
-    int added = 41;
-    CHECK(List_add(pList, &added) == 0);
-    CHECK(List_count(pList) == 1);
-    CHECK(List_curr(pList) == &added);
+    // Add (First node in the list)
+    // Current list: first -> 12(curr) <- last
+    int numToAdd = 12;
+    _assert(List_add(pList, &numToAdd) == 0);
+    _assert(List_count(pList) == 1);
+    _assert(List_curr(pList) == &numToAdd);
+    _assert(List_first(pList) == &numToAdd);
+    _assert(List_last(pList) == &numToAdd);
 
-    // Insert
-    printf("Insert 42\n");
-    int inserted = 42;
-    CHECK(List_insert(pList, &inserted) == 0);
-    CHECK(List_count(pList) == 2);
-    CHECK(List_curr(pList) == &inserted);
+    // Insert (Insert before first node)
+    // List: first -> 14(curr) -> 12 <- last
+    int numToInsert = 14;
+    _assert(List_insert(pList, &numToInsert) == 0);
+    _assert(List_count(pList) == 2);
+    _assert(List_curr(pList) == &numToInsert);
+
+    // Add (Add in between 2 nodes)
+    // List: first -> 14 -> 15(curr) -> 12 <- last
+    int numToAddBetween = 15;
+    _assert(List_add(pList, &numToAddBetween) == 0);
+    _assert(List_count(pList) == 3);
+    _assert(List_curr(pList) == &numToAddBetween);
 
     // Prepend
-    printf("Prepend 43\n");
-    int prepended = 43;
-    CHECK(List_prepend(pList, &prepended) == 0);
-    CHECK(List_count(pList) == 3);
-    CHECK(List_curr(pList) == &prepended);
+    // List: first -> 16(curr) -> 14 -> 15 -> 12 <- last
+    int numToPrepend = 16;
+    _assert(List_prepend(pList, &numToPrepend) == 0);
+    _assert(List_count(pList) == 4);
+    _assert(List_curr(pList) == &numToPrepend);
 
     // Append
-    printf("Append 44\n");
-    int appended = 44;
-    CHECK(List_append(pList, &appended) == 0);
-    CHECK(List_count(pList) == 4);
-    CHECK(List_curr(pList) == &appended);
+    // List: first -> 16 -> 14 -> 15 -> 12 -> 17(curr) <- last
+    int numToAppend = 17;
+    _assert(List_append(pList, &numToAppend) == 0);
+    _assert(List_count(pList) == 5);
+    _assert(List_curr(pList) == &numToAppend);
 
-    // Next through it all (from before list)
-    printf("Next through it all (from before list)\n");
-    CHECK(List_first(pList) == &prepended);
-    CHECK(List_prev(pList) == NULL);
-    CHECK(List_next(pList) == &prepended);
-    CHECK(List_next(pList) == &inserted);
-    CHECK(List_next(pList) == &added);
-    CHECK(List_next(pList) == &appended);
-    CHECK(List_next(pList) == NULL);
-    CHECK(List_next(pList) == NULL);
-
-    // Prev through it all
-    //   starting from past end
-    printf("Prev through it all\n");
-    CHECK(List_last(pList) == &appended);
-    CHECK(List_next(pList) == NULL);
-    CHECK(List_prev(pList) == &appended);
-    CHECK(List_prev(pList) == &added);
-    CHECK(List_prev(pList) == &inserted);
-    CHECK(List_prev(pList) == &prepended);
-    CHECK(List_prev(pList) == NULL);
-    CHECK(List_prev(pList) == NULL);
-
-    // Remove first
-    printf("Remove first\n");
-    CHECK(List_first(pList) == &prepended);
-    printf("Pass first\n");
-    CHECK(List_remove(pList) == &prepended);
-    printf("Pass remove\n");
-    CHECK(List_curr(pList) == &inserted);
-    printf("Pass curr\n");
-
-    // Trim last
-    printf("Trim last\n");
-    CHECK(List_trim(pList) == &appended);
-    CHECK(List_curr(pList) == &added);
-
-    // Free remaining 2 elements
-    printf("Free remaining 2 elements\n");
-    complexTestFreeCounter = 0;
-    List_free(pList, complexTestFreeFn);
-    printf("%d\n", complexTestFreeCounter);
-    CHECK(complexTestFreeCounter == 2);
-
-    // Concat
-    printf("Concat\n");
-    int one = 1;
-    int two = 2;
-    int three = 3;
-    int four = 4;
-    List *pList1 = List_create();
-    List_add(pList1, &one);
-    List_add(pList1, &two);
-    CHECK(List_curr(pList1) == &two);
-    List *pList2 = List_create();
-    List_add(pList2, &three);
-    List_add(pList2, &four);
-    CHECK(List_curr(pList1) == &two);
-
-    List_concat(pList1, pList2);
-    CHECK(List_count(pList1) == 4);
-    CHECK(List_first(pList1) == &one);
-    CHECK(List_last(pList1) == &four);
-
-    // Search
-    printf("Search\n");
-    List_first(pList1);
-    CHECK(List_search(pList1, itemEquals, &two) == &two);
-    CHECK(List_search(pList1, itemEquals, &two) == &two);
-    CHECK(List_search(pList1, itemEquals, &one) == NULL);
+    return 0;
 }
 
-int main(int argCount, char *args[])
-{
-    testComplex();
-
-    // We got here?!? PASSED!
-    printf("********************************\n");
-    printf("           PASSED\n");
-    printf("********************************\n");
+int all_tests() {
+    _verify(crud_tests);
     return 0;
+}
+
+int main(int argc, char **argv) {
+    int result = all_tests();
+    if (result == 0)
+        printf("PASSED\n");
+    printf("Tests run: %d\n", tests_run);
+
+    return result != 0;
 }
