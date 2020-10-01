@@ -474,14 +474,12 @@ int List_prepend(List* pList, void* pItem)
 void* List_remove(List* pList)
 {
     // Case: List is already empty
-    printf("Check count\n");
     if (pList->count == 0)
     {
         return NULL;
     }
 
     // Case: current node is OOB
-    printf("Check OOB\n");
     if (pList->pNodeCurrent == P_NODE_OOB_END || pList->pNodeCurrent == P_NODE_OOB_START)
     {
         return NULL;
@@ -490,10 +488,8 @@ void* List_remove(List* pList)
     Node* nodeToRemove = pList->pNodeCurrent;
 
     // Case: current node is the last node
-    printf("Check last node\n");
     if (nodeToRemove == pList->pNodeLast)
     {
-        printf("Inside last node\n");
         // Detach nodeToRemove from the List
         nodeToRemove->previousNode->nextNode = NULL;
         
@@ -511,7 +507,6 @@ void* List_remove(List* pList)
 
     if (nodeToRemove == pList->pNodeFirst)
     {
-        printf("Inside first node\n");
         // Detach nodeToRemove from the List
         nodeToRemove->nextNode->previousNode = NULL;
 
@@ -535,7 +530,6 @@ void* List_remove(List* pList)
     pList->count -= 1;
 
     void* nodeToRemoveItem = nodeToRemove->item;
-    printf("Before push_back\n");
     push_back_to_available(nodeToRemove);
 
     return nodeToRemoveItem;
