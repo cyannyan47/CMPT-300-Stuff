@@ -59,18 +59,25 @@ int crud_tests() {
     _assert(List_count(pList) == 3);
     _assert(List_curr(pList) == &numToAddBetween);
 
+    // Insert (Add in between 2 nodes)
+    // List: first -> 14 -> 18(curr) -> 15 -> 12 <- last
+    int numToInsertBetween = 18;
+    _assert(List_add(pList, &numToInsertBetween) == 0);
+    _assert(List_count(pList) == 4);
+    _assert(List_curr(pList) == &numToInsertBetween);
+
     // Prepend
-    // List: first -> 16(curr) -> 14 -> 15 -> 12 <- last
+    // List: first -> 16(curr) -> 14 -> 18 -> 15 -> 12 <- last
     int numToPrepend = 16;
     _assert(List_prepend(pList, &numToPrepend) == 0);
-    _assert(List_count(pList) == 4);
+    _assert(List_count(pList) == 5);
     _assert(List_curr(pList) == &numToPrepend);
 
     // Append
-    // List: first -> 16 -> 14 -> 15 -> 12 -> 17(curr) <- last
+    // List: first -> 16 -> 14 -> 18 -> 15 -> 12 <- 17 <- last
     int numToAppend = 17;
     _assert(List_append(pList, &numToAppend) == 0);
-    _assert(List_count(pList) == 5);
+    _assert(List_count(pList) == 6);
     _assert(List_curr(pList) == &numToAppend);
 
     return 0;
