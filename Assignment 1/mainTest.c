@@ -19,9 +19,11 @@ static void listRemoveFreeFn(void *pItem)
 }
 
 // For searching
-static bool itemEquals(void *pItem, void *pArg)
+static bool isIntEqual(void *pItem, void *pComparisonArg)
 {
-    return (pItem == pArg);
+    _assert(pItem != NULL);
+    _assert(pComparisonArg != NULL);
+    return (*(int*)pItem == *(int*)pComparisonArg);
 }
 
 int list_crud_tests() {
@@ -41,7 +43,7 @@ int list_crud_tests() {
     // Add (First node in the list)
     // Current list: first -> 12(curr) <- last
     int numToAdd = 12;
-    _assert(List_add(pList, &numToAdd) == 0);
+    _assert(List_add(pList, &numToAdd) == LIST_SUCCESS);
     _assert(List_count(pList) == 1);
     _assert(List_curr(pList) == &numToAdd);
     _assert(List_first(pList) == &numToAdd);
@@ -50,35 +52,35 @@ int list_crud_tests() {
     // Insert (Insert before first node)
     // List: first -> 14(curr) <-> 12 <- last
     int numToInsert = 14;
-    _assert(List_insert(pList, &numToInsert) == 0);
+    _assert(List_insert(pList, &numToInsert) == LIST_SUCCESS);
     _assert(List_count(pList) == 2);
     _assert(List_curr(pList) == &numToInsert);
 
     // Add (Add in between 2 nodes)
     // List: first -> 14 <-> 15(curr) <-> 12 <- last
     int numToAddBetween = 15;
-    _assert(List_add(pList, &numToAddBetween) == 0);
+    _assert(List_add(pList, &numToAddBetween) == LIST_SUCCESS);
     _assert(List_count(pList) == 3);
     _assert(List_curr(pList) == &numToAddBetween);
 
     // Insert (Add in between 2 nodes)
     // List: first -> 14 <-> 18(curr) <-> 15 <-> 12 <- last
     int numToInsertBetween = 18;
-    _assert(List_insert(pList, &numToInsertBetween) == 0);
+    _assert(List_insert(pList, &numToInsertBetween) == LIST_SUCCESS);
     _assert(List_count(pList) == 4);
     _assert(List_curr(pList) == &numToInsertBetween);
 
     // Prepend
     // List: first -> 16(curr) <-> 14 <-> 18 <-> 15 <-> 12 <- last
     int numToPrepend = 16;
-    _assert(List_prepend(pList, &numToPrepend) == 0);
+    _assert(List_prepend(pList, &numToPrepend) == LIST_SUCCESS);
     _assert(List_count(pList) == 5);
     _assert(List_curr(pList) == &numToPrepend);
 
     // Append
     // List: first -> 16 <-> 14 <-> 18 <-> 15 <-> 12 <-> 17(curr) <- last
     int numToAppend = 17;
-    _assert(List_append(pList, &numToAppend) == 0);
+    _assert(List_append(pList, &numToAppend) == LIST_SUCCESS);
     _assert(List_count(pList) == 6);
     _assert(List_curr(pList) == &numToAppend);
 
@@ -148,10 +150,118 @@ int list_crud_tests() {
     return 0;
 }
 
+int list_concat_test() 
+{
+    // Arranging items to add
+    char a = 'a';
+    char b = 'b';
+    char c = 'c';
+    char d = 'd';
+    // Adding a and b to list 1
+    List* pList1 = List_create();
+    List_add(pList1, &a);
+    List_add(pList1, &b);
 
+    // Adding c and d to list 2
+    List* pList2 = List_create();
+    List_add(pList2, &c);
+    List_add(pList2, &d);
+
+    // Concat list 2 into list 1
+    List_concat(pList1, pList2);
+    _assert(List_count(pList1) == 4);
+
+    // List 1's current item was b before concat
+    _assert(List_curr(pList1) == &b);
+    _assert(List_first(pList1) == &a);
+    _assert(List_last(pList1) == &d);
+
+    // Free all remaining nodes for other tests
+    howManyNodesFreed = 0;
+    List_free(pList1, listRemoveFreeFn);
+    _assert(howManyNodesFreed == 4);
+
+    return 0;
+    
+}
+
+int list_search_test()
+{
+    List* pList = List_create();
+    int numArray[10] = {0, 1, 2, 9, 4, 5, 6, 7, 8, 9};
+    for (int i = 0; i < 10; i++)
+    {
+        List_add(pList, &numArray[i]);
+    }
+
+    int searchItem = 9;
+    // Set current node first to search the first 9
+    List_first(pList);
+    _assert(List_search(pList, isIntEqual, &searchItem) == &numArray[3]);
+    // Move next to search the last 9
+    List_next(pList);
+    _assert(List_search(pList, isIntEqual, &searchItem) == &numArray[9]);
+
+    int notFoundItem = 10;
+    List_first(pList);
+    _assert(List_search(pList, isIntEqual, &notFoundItem) == NULL);
+
+    // Free all remaining nodes for other tests
+    howManyNodesFreed = 0;
+    List_free(pList, listRemoveFreeFn);
+    _assert(howManyNodesFreed == 10);
+
+    return 0;
+}
+
+int list_use_all_nodes_test()
+{
+    List* pList = List_create();
+    int itr = 0;
+    for (itr; itr < LIST_MAX_NUM_NODES; itr++)
+    {
+        _assert(List_add(pList, &itr) == LIST_SUCCESS);
+    }
+    
+    // Try adding a node after use all available node to list
+    int someValue = 3;
+    _assert(List_add(pList, &someValue) == LIST_FAIL);
+
+    return 0;
+}
+
+int list_use_all_list_head_test()
+{
+    List* pListArray[LIST_MAX_NUM_HEADS];
+    int itr = 0;
+    for (itr; itr < LIST_MAX_NUM_HEADS; itr++)
+    {
+        pListArray[itr] = List_create();
+        _assert(pListArray[itr] != NULL);
+    }
+
+    // Try creating one more list
+    List * pList = List_create();
+    _assert(pList == NULL);
+
+    // Freeing list heads for other tests
+    for (itr = 0; itr < LIST_MAX_NUM_HEADS; itr++) 
+    {
+        List_free(pListArray[itr], listRemoveFreeFn);
+    }
+
+    return 0;
+}
 
 int all_tests() {
+
     _verify(list_crud_tests);
+    _verify(list_concat_test);
+    _verify(list_search_test);
+    _verify(list_use_all_list_head_test);
+    _verify(list_use_all_nodes_test);
+
+
     return 0;
 }
 

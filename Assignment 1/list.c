@@ -99,7 +99,6 @@ List* List_create()
     // Case run out of list heads
     if (newListHead == NULL) 
     {
-        printf("Out of List heads\n");
         return NULL;
     }
     
@@ -611,7 +610,6 @@ void List_free(List* pList, FREE_FN pItemFreeFn)
     pList->pNodeCurrent = pList->pNodeLast;
     for (pList->count; pList->count > 0; )
     {
-        printf("Count %d\n", pList->count);
         Node* pNodeToFree = pList->pNodeCurrent;
         pList->pNodeCurrent = pList->pNodeCurrent->previousNode;
 
@@ -620,7 +618,6 @@ void List_free(List* pList, FREE_FN pItemFreeFn)
         push_back_to_available(pNodeToFree);
 
         pList->count--;
-        printf("After subtract count %d\n", pList->count);
     }
     // while(pList->pNodeCurrent != pList->pNodeFirst) 
     // {
@@ -635,15 +632,9 @@ void List_free(List* pList, FREE_FN pItemFreeFn)
     //     pList->count--;
     //     printf("After subtract count %d\n", pList->count);
     // }
-    printf("After while loop\n");
 
     if (pList->count == 1 && pList->pNodeFirst == pList->pNodeLast)
     {
-        printf("Count qafkyfafgjg %d\n", pList->count);
-        if (pList->pNodeFirst == NULL)
-        {
-            printf("First node exists\n");
-        }
         (*pItemFreeFn)(pList->pNodeFirst->item);
         push_back_to_available(pList->pNodeFirst);
         pList->count = 0;
