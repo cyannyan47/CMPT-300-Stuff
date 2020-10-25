@@ -1,6 +1,7 @@
 /*
 ** talker.c -- a datagram "client" demo
 */
+#define _POSIX_C_SOURCE 200112L
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +19,8 @@
 int main(int argc, char *argv[])
 {
 	int sockfd;
-	struct addrinfo hints, *servinfo, *p;
+	struct addrinfo hints;
+	struct addrinfo *servinfo, *p;
 	int rv;
 	int numbytes;
 

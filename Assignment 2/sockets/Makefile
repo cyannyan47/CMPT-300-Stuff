@@ -1,7 +1,7 @@
 all: test
 
 test_socket.o:
-	gcc -c test_socket.c
+	gcc -c -g -Wall test_socket.c
 
 test: test_socket.o
 	gcc -o test test_socket.o
