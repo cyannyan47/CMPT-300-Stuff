@@ -1,7 +1,7 @@
 CC=cc
 CXX=cc
 
-CCFLAGS= -g -std=c99 -Wall
+CCFLAGS= -g -std=c99 -D _POSIX_C_200809L -Wall
 
 # action
 all: s-talk run
