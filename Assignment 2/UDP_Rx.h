@@ -6,7 +6,7 @@
 
 #include "list.h"
 
-void UDP_Rx_init(char* remote_port, List *receiver_list, pthread_mutex_t *list_mutex, pthread_mutex_t *UDP_Rx_mutex, pthread_cond_t *UDP_Rx_cond);
+void UDP_Rx_init(char *remote_hostname, char* remote_port, List *receiver_list, pthread_mutex_t *list_mutex, pthread_mutex_t *UDP_Rx_mutex, pthread_cond_t *UDP_Rx_cond);
 
 void UDP_Rx_waitForShutdown();
 

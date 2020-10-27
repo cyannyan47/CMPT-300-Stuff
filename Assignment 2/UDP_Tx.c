@@ -66,6 +66,7 @@ void* start_sender() {
         // Wait for Kb_in
         pthread_mutex_lock(s_UDP_Tx_mutex);
 		{
+            printf("UDP_Tx: Waiting for Kb_in\n");
 			pthread_cond_wait(s_UDP_Tx_cond, s_UDP_Tx_mutex);
 		}
 		pthread_mutex_unlock(s_UDP_Tx_mutex);
@@ -73,6 +74,7 @@ void* start_sender() {
         // Get msg from list
         pthread_mutex_lock(s_list_mutex);
 		{
+            printf("UDP_Tx: Getting msg from list\n");
 			item = List_trim(s_transmitter_list);
 		}
 		pthread_mutex_unlock(s_list_mutex);
@@ -81,6 +83,7 @@ void* start_sender() {
 
         // Send the msg to remote
         int numbytes;
+        printf("UDP_Tx: Sending the msg to remote\n");
         if ((numbytes = sendto(s_sockfd, msg, strlen(msg), 0,
                 s_Ptr->ai_addr, s_Ptr->ai_addrlen)) == -1) {
             perror("talker: sendto");
@@ -89,6 +92,7 @@ void* start_sender() {
 
         // If msg = "!\n", then break the loop and return success
         if (strcmp(msg, "!\n") == 0) {
+            printf("UDP_Tx: msg == !\\n\n");
             // shutdown
             break;
         }

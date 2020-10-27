@@ -11,15 +11,6 @@
 #include "UDP_Tx.h"
 #include "UDP_Rx.h"
 
-#define MAXLENGTH 1024
-
-/*
-int Kb_in(char *msg_to);
-void UDP_Tx();
-void UDP_Rx();
-void Scr_out();
-*/
-
 int main (int argc, char *argv[])
 {
     pthread_mutex_t list_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -30,7 +21,7 @@ int main (int argc, char *argv[])
     pthread_mutex_t UDP_Tx_mutex = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t UDP_Rx_mutex = PTHREAD_MUTEX_INITIALIZER;
     
-    printf ("This program was called with \"%s\".\n",argv[0]);
+    printf ("This program was called with \"%s\".\n", argv[0]);
 
     if (argc != 4) {
         printf("Usage:\ns-talk [local port number] [remote hostname] [remote port number]\n");
@@ -47,7 +38,7 @@ int main (int argc, char *argv[])
     UDP_Tx_init(argv[2], argv[3], transmitter_list, &list_mutex, &UDP_Tx_mutex, &UDP_Tx_cond);
 
     // Receiver
-    UDP_Rx_init(argv[3], receiver_list, &list_mutex, &UDP_Rx_mutex, &UDP_Rx_cond);
+    UDP_Rx_init(argv[2], argv[3], receiver_list, &list_mutex, &UDP_Rx_mutex, &UDP_Rx_cond);
     Scr_out_init(receiver_list, &list_mutex, &UDP_Rx_mutex, &UDP_Rx_cond);
 
     // CLOSE

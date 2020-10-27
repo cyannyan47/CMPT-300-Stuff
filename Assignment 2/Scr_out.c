@@ -22,6 +22,7 @@ void* start_scr_out() {
         // Wait for UDP_Rx
         pthread_mutex_lock(s_UDP_Rx_mutex);
 		{
+            printf("Scr_out: Waiting for UDP_Rx\n");
 			pthread_cond_wait(s_UDP_Rx_cond, s_UDP_Rx_mutex);
 		}
 		pthread_mutex_unlock(s_UDP_Rx_mutex);
@@ -29,12 +30,14 @@ void* start_scr_out() {
         // Get msg from list
         pthread_mutex_lock(s_list_mutex);
 		{
+            printf("Scr_out: Getting msg from list\n");
 			item = List_trim(s_receiver_list);
 		}
 		pthread_mutex_unlock(s_list_mutex);
 
         // Write to screen
         strcpy(msg, (const char *)item);
+        printf("Scr_out: Writing to screen\n");
         if ((sz = write(STDOUT_FILENO, msg, MAX_LENGTH)) < 0) {
             // return error
             printf("Cannot print received message.\n");
@@ -42,6 +45,7 @@ void* start_scr_out() {
 
         // Check if msg = "!\n" then shutdown
         if (strcmp(msg, "!\n") == 0) {
+            printf("Scr_out: msg == !\\n\n");
             // shutdown // break;
             break;
         }

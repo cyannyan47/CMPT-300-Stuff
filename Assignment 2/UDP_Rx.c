@@ -22,6 +22,7 @@ static List *s_receiver_list;
 static pthread_mutex_t *s_list_mutex;
 static pthread_mutex_t *s_UDP_Rx_mutex;
 static pthread_cond_t *s_UDP_Rx_cond;
+static char *s_remote_hostname;
 static char* s_remote_port;
 
 void* start_receiver() {
@@ -71,6 +72,7 @@ void* start_receiver() {
 
 	// Listening from remote
 	while(1) {
+		printf("UDP_Rx: Listening (waiting) from remote\n");
 		addr_len = sizeof remote_addr;
 		if ((numbytes = recvfrom(sockfd, msg, MAX_LENGTH, 0,
 			(struct sockaddr *)&remote_addr, &addr_len)) == -1) {
@@ -84,6 +86,7 @@ void* start_receiver() {
 		// Add msg to list
 		pthread_mutex_lock(s_list_mutex);
 		{
+			printf("UDP_Rx: Adding msg to list\n");
 			if (List_prepend(s_receiver_list, msg) == LIST_FAIL) {
 				// return error
 			}
@@ -93,6 +96,7 @@ void* start_receiver() {
 		// Signal scr_out
 		pthread_mutex_lock(s_UDP_Rx_mutex);
 		{
+			printf("UDP_Rx: Signalling scr_out\n");
 			pthread_cond_signal(s_UDP_Rx_cond);
 		}
 		pthread_mutex_unlock(s_UDP_Rx_mutex);
@@ -101,7 +105,8 @@ void* start_receiver() {
     // return UDP_RX_SUCCESS;
 }
 
-void UDP_Rx_init(char* remote_port, List *receiver_list, pthread_mutex_t *list_mutex, pthread_mutex_t *UDP_Rx_mutex, pthread_cond_t *UDP_Rx_cond) {
+void UDP_Rx_init(char *remote_hostname, char* remote_port, List *receiver_list, pthread_mutex_t *list_mutex, pthread_mutex_t *UDP_Rx_mutex, pthread_cond_t *UDP_Rx_cond) {
+	s_remote_hostname = remote_hostname;
 	s_receiver_list = receiver_list;
     s_list_mutex = list_mutex;
 	s_UDP_Rx_mutex = UDP_Rx_mutex;

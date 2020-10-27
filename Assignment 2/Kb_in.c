@@ -17,6 +17,7 @@ void* start_kb_in() {
     
     while (1) {
         // Read from keyboard
+        printf("Kb_in: Reading from keyboard.\n");
         if ((sz = read(STDOUT_FILENO, msg, MAX_LENGTH)) < 0) {
             // return error
             printf("Couldn't read from keyboard\n");
@@ -25,6 +26,7 @@ void* start_kb_in() {
         // Add to list
         pthread_mutex_lock(s_list_mutex);
 		{
+            printf("Kb_in: Adding to list\n");
 			if (List_prepend(s_transmitter_list, (void *)msg) == LIST_FAIL) {
                 // return error
                 printf("Critical Section: Prepend to List failed\n");
@@ -35,6 +37,7 @@ void* start_kb_in() {
         // Signal UDP_Tx to get new item
         pthread_mutex_lock(s_UDP_Tx_mutex);
 		{
+            printf("Kb_in: Signalling UDP_Tx\n");
 			pthread_cond_signal(s_UDP_Tx_cond);
 		}
 		pthread_mutex_unlock(s_UDP_Tx_mutex);
