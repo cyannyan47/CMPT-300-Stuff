@@ -22,8 +22,8 @@ static List *s_receiver_list;
 static pthread_mutex_t *s_list_mutex;
 static pthread_mutex_t *s_UDP_Rx_mutex;
 static pthread_cond_t *s_UDP_Rx_cond;
-static char *s_remote_hostname;
-static char* s_remote_port;
+// static char *s_remote_hostname;
+static char* s_local_port;
 
 void* start_receiver() {
 	int sockfd;
@@ -41,7 +41,7 @@ void* start_receiver() {
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_flags = AI_PASSIVE; // use local IP
 
-	if ((rv = getaddrinfo(NULL, s_remote_port, &hints, &returned_info)) != 0) {
+	if ((rv = getaddrinfo(NULL, s_local_port, &hints, &returned_info)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		//return UDP_RX_FAIL;
 	}
@@ -105,14 +105,14 @@ void* start_receiver() {
     // return UDP_RX_SUCCESS;
 }
 
-void UDP_Rx_init(char *remote_hostname, char* remote_port, List *receiver_list, pthread_mutex_t *list_mutex, pthread_mutex_t *UDP_Rx_mutex, pthread_cond_t *UDP_Rx_cond) {
-	s_remote_hostname = remote_hostname;
+void UDP_Rx_init(char* local_port, List *receiver_list, pthread_mutex_t *list_mutex, pthread_mutex_t *UDP_Rx_mutex, pthread_cond_t *UDP_Rx_cond) {
+	// s_remote_hostname = remote_hostname;
 	s_receiver_list = receiver_list;
     s_list_mutex = list_mutex;
 	s_UDP_Rx_mutex = UDP_Rx_mutex;
     s_UDP_Rx_cond = UDP_Rx_cond;
-	s_remote_port = remote_port;
-    pthread_create(&UDP_Rx_PID, NULL, start_receiver, remote_port);
+	s_local_port = local_port;
+    pthread_create(&UDP_Rx_PID, NULL, start_receiver, local_port);
 }
 
 

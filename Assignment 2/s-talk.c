@@ -38,7 +38,7 @@ int main (int argc, char *argv[])
     UDP_Tx_init(argv[2], argv[3], transmitter_list, &list_mutex, &UDP_Tx_mutex, &UDP_Tx_cond);
 
     // Receiver
-    UDP_Rx_init(argv[2], argv[3], receiver_list, &list_mutex, &UDP_Rx_mutex, &UDP_Rx_cond);
+    UDP_Rx_init(argv[1], receiver_list, &list_mutex, &UDP_Rx_mutex, &UDP_Rx_cond);
     Scr_out_init(receiver_list, &list_mutex, &UDP_Rx_mutex, &UDP_Rx_cond);
 
     // CLOSE
