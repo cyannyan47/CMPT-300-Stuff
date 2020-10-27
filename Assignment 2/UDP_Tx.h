@@ -7,10 +7,7 @@
 #include "list.h"
 
 // Initialize socket to send messages to remote machine
-void UDP_Tx_init(char *remoteHostname, char *remotePort);
-
-// void UDP_Tx_sendMessage();
-int UDP_Tx_sendMessage(char *msg_to);
+void UDP_Tx_init(char *remoteHostname, char *remotePort, List *trasmitter_list, pthread_mutex_t *list_mutex, pthread_mutex_t *UDP_Tx_mutex, pthread_cond_t *UDP_Tx_cond);
 
 void UDP_Tx_waitForShutdown();
 

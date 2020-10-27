@@ -1,21 +1,18 @@
 CC=cc
 CXX=cc
 
-CCFLAGS= -g -std=c99 -D _POSIX_C_200809L -Wall
+CCFLAGS= -g -std=c99 -D _POSIX_C_SOURCE=200112L -Wall -Werror
 
 # action
-all: s-talk run
+all: s-talk
 
-# Compile all c files to 0 files
+# Compile all c files to o files
 %.o : %.c
 	$(CC) -c $(CCFLAGS) $<
 
 
-s-talk: s-talk.o
-	$(CC) -o s-talk s-talk.o
-
-run: s-talk
-	./s-talk
+s-talk: s-talk.o Kb_in.o Scr_out.o UDP_Rx.o UDP_Tx.o list.o
+	$(CC) -o s-talk s-talk.o Kb_in.o Scr_out.o UDP_Rx.o UDP_Tx.o list.o -lpthread
 
 clean:
 	rm -f core *.o s-talk

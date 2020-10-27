@@ -11,31 +11,27 @@
 
 typedef struct Node_s Node;
 struct Node_s {
-    // TODO: You should change this
-    
-    // Using doubly linked list
-    void* item;
-    Node* previousNode;
-    Node* nextNode;
+    Node *prev;
+    Node *next;
+    void *item;
 };
 
-typedef enum ListOutOfBounds ListState;
+typedef enum ListOutOfBounds State;
 enum ListOutOfBounds {
     LIST_OOB_START,
-    LIST_OOB_END
+    LIST_OOB_END,
+    LIST_NOT_OOB
 };
 
 typedef struct List_s List;
 struct List_s{
-    // TODO: You should change this!
-    // Keep track of the first node in the List
-    Node* pNodeFirst;
-    Node* pNodeCurrent;
-    Node* pNodeLast;
+    Node *head;
+    Node *tail;
+    Node *curr;
+    bool isEmpty;
     int count;
+    State state;
 };
-
-void Test_playground();
 
 // Maximum number of unique lists the system can support
 // (You may modify for your needs)
