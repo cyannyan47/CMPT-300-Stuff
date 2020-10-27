@@ -41,13 +41,20 @@ int main (int argc, char *argv[])
     printf("Want to connect to machine: %s\n", argv[2]);
     printf("With port: %s\n", argv[3]);
 
+    // SETUP
     // Transmitter
     Kb_in_init(transmitter_list, &list_mutex, &UDP_Tx_mutex, &UDP_Tx_cond);
     UDP_Tx_init(argv[2], argv[3], transmitter_list, &list_mutex, &UDP_Tx_mutex, &UDP_Tx_cond);
 
     // Receiver
     UDP_Rx_init(argv[3], receiver_list, &list_mutex, &UDP_Rx_mutex, &UDP_Rx_cond);
-    scr_out_init(receiver_list, &list_mutex, &UDP_Rx_mutex, &UDP_Rx_cond);
+    Scr_out_init(receiver_list, &list_mutex, &UDP_Rx_mutex, &UDP_Rx_cond);
+
+    // CLOSE
+    Kb_in_WaitForShutdown();
+    Scr_out_WaitForShutdown();
+    UDP_Tx_waitForShutdown();
+    UDP_Rx_waitForShutdown();
 
     return 0;
 }

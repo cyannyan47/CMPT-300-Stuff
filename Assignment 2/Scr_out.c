@@ -49,7 +49,7 @@ void* start_scr_out() {
     return NULL;
 }
 
-void scr_out_init(List *receiver_list, pthread_mutex_t *list_mutex, pthread_mutex_t *UDP_Rx_mutex, pthread_cond_t *UDP_Rx_cond) {
+void Scr_out_init(List *receiver_list, pthread_mutex_t *list_mutex, pthread_mutex_t *UDP_Rx_mutex, pthread_cond_t *UDP_Rx_cond) {
     s_receiver_list = receiver_list;
     s_list_mutex = list_mutex;
     s_UDP_Rx_mutex = UDP_Rx_mutex;
@@ -57,7 +57,7 @@ void scr_out_init(List *receiver_list, pthread_mutex_t *list_mutex, pthread_mute
     pthread_create(&scr_out_PID, NULL, start_scr_out, NULL);
 }
 
-void scr_out_WaitForShutdown() {
+void Scr_out_WaitForShutdown() {
     pthread_join(scr_out_PID, NULL);
     // int retcode;
     // pthread_join(scr_out_PID, (void**)&retcode);
