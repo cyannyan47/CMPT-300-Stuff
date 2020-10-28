@@ -58,7 +58,8 @@ void Kb_in_Shutdown() {
     s_pMsgAllocated = NULL;
 
     pthread_cancel(kb_in_PID);
-    pthread_join(kb_in_PID, NULL);
+    // pthread_join(kb_in_PID, NULL);
+    
     // int retcode;
     // pthread_join(kb_in_PID, (void**)&retcode);
 

@@ -39,6 +39,7 @@ void* start_scr_out() {
 
         // Free dynamically allocated memory in UDP_Rx
         free(s_pMsgAllocated);
+        s_pMsgAllocated = NULL;
     }
     return NULL;
 }
@@ -55,7 +56,8 @@ void Scr_out_Shutdown() {
     s_pMsgAllocated = NULL;
 
     pthread_cancel(scr_out_PID);
-    pthread_join(scr_out_PID, NULL);
+    // pthread_join(scr_out_PID, NULL);
+
     // int retcode;
     // pthread_join(scr_out_PID, (void**)&retcode);
     // // print scr_out result

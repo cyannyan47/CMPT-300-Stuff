@@ -89,16 +89,16 @@ void* start_receiver() {
 		null_term_idx = numbytes < MAX_LENGTH ? numbytes : MAX_LENGTH - 1;
 		s_pMsgAllocated[null_term_idx] = '\0';
 
-		// Add msg to list
-		// This will be replaced by a function call from List_manager
-		Receiver_List_prepend(s_pMsgAllocated);
-
 		// Note: there might be a shutdown race condition where UDP_Rx is comparing while Scr_out is freeing the allocated memory
 		if (strcmp(s_pMsgAllocated, "!\n") == 0) {
             printf("UDP_Rx: msg == !\\n\n");
-			SM_trigger_shutdown();
+			SM_trigger_shutdown_remote();
             // shutdown // break;
         }
+
+		// Add msg to list
+		// This will be replaced by a function call from List_manager
+		Receiver_List_prepend(s_pMsgAllocated);
 	}
 	return NULL;
 }
@@ -115,11 +115,15 @@ void UDP_Rx_Shutdown() {
 	printf("Shutdown UDP_Rx\n");
 
 	free(s_pMsgAllocated);
+	printf("free() called\n");
 	s_pMsgAllocated = NULL;
+	printf("NULL assignment called\n");
 	close(s_sockfd);
-
+	printf("close socket called\n");
 	pthread_cancel(UDP_Rx_PID);
-	pthread_join(UDP_Rx_PID, NULL);
+	printf("cancel called\n");
+	// pthread_join(UDP_Rx_PID, NULL);
+
 	// int retcode;
     // pthread_join(UDP_Rx_PID, (void**)&retcode);
     // // print scr_out result

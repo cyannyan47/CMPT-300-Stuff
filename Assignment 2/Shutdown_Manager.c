@@ -2,6 +2,10 @@
 
 #include "Shutdown_Manager.h"
 #include "List_Manager.h"
+#include "Kb_in.h"
+#include "Scr_out.h"
+#include "UDP_Rx.h"
+#include "UDP_Tx.h"
 
 // SM = ShutdownManager
 
@@ -34,12 +38,20 @@ void SM_wait_for_shutdown() {
     pthread_join(*s_UDP_Rx_PID, NULL);
 }
 
-void SM_trigger_shutdown() {
-    // pthread_cancel(s_kb_in_PID);
-    // pthread_cancel(s_scr_out_PID);
-    // pthread_cancel(s_UDP_Tx_PID);
-    // pthread_cancel(s_UDP_Rx_PID);
+void SM_trigger_shutdown_local() {
+    Kb_in_Shutdown();
+    UDP_Rx_Shutdown();
+    Scr_out_Shutdown();
+    UDP_Tx_Shutdown();
 
-    // free allocated memory... probably will call List_free somehow?
+    List_Manager_shutdown();
+}
+
+void SM_trigger_shutdown_remote() {
+    Kb_in_Shutdown();
+    UDP_Tx_Shutdown();
+    Scr_out_Shutdown();
+    UDP_Rx_Shutdown();
+
     List_Manager_shutdown();
 }

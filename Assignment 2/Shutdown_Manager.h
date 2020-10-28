@@ -12,6 +12,7 @@ void SM_load_UDP_Rx_PID(pthread_t *UDP_Rx_PID);
 
 void SM_wait_for_shutdown();
 
-void SM_trigger_shutdown();
+void SM_trigger_shutdown_local();
+void SM_trigger_shutdown_remote();
 
 #endif

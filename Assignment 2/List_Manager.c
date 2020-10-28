@@ -92,6 +92,7 @@ void Receiver_List_trim(char **s_pMsgAllocated) {
 
 void freeFN(void *ptr) {
     free(ptr);
+    ptr = NULL;
 }
 
 void List_Manager_shutdown() {

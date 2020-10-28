@@ -81,10 +81,11 @@ void* start_sender() {
         if (strcmp(s_pMsgAllocated, "!\n") == 0) {
             printf("UDP_Tx: msg == !\\n\n");
             // shutdown
-            SM_trigger_shutdown();
+            SM_trigger_shutdown_local();
         }
         printf("After strcmp\n");
         free(s_pMsgAllocated);
+        s_pMsgAllocated = NULL;
     }
     return NULL;
 }
@@ -105,7 +106,8 @@ void UDP_Tx_Shutdown() {
     close(s_sockfd);
 
     pthread_cancel(UDP_Tx_PID);
-    pthread_join(UDP_Tx_PID, NULL);
+    // pthread_join(UDP_Tx_PID, NULL);
+
     // int retcode;
     // pthread_join(UDP_Tx_PID, (void**)&retcode);
     // // print scr_out result
