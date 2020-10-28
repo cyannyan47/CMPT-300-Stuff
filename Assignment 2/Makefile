@@ -11,8 +11,8 @@ all: s-talk
 	$(CC) -c $(CCFLAGS) $<
 
 
-s-talk: s-talk.o Kb_in.o Scr_out.o UDP_Rx.o UDP_Tx.o list.o
-	$(CC) -o s-talk s-talk.o Kb_in.o Scr_out.o UDP_Rx.o UDP_Tx.o list.o -lpthread
+s-talk: s-talk.o Shutdown_Manager.o List_Manager.o Kb_in.o Scr_out.o UDP_Rx.o UDP_Tx.o list.o 
+	$(CC) -o s-talk s-talk.o Shutdown_Manager.o List_Manager.o Kb_in.o Scr_out.o UDP_Rx.o UDP_Tx.o list.o  -lpthread
 
 clean:
 	rm -f core *.o s-talk

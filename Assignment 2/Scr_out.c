@@ -5,63 +5,56 @@
 #include <string.h>
 
 #include "Scr_out.h"
+#include "List_Manager.h"
+#include "Shutdown_Manager.h"
 
 #define MAX_LENGTH 1024
 
 static pthread_t scr_out_PID;
-static List *s_receiver_list;
-static pthread_mutex_t *s_list_mutex;
-static pthread_mutex_t *s_UDP_Rx_mutex;
-static pthread_cond_t *s_UDP_Rx_cond;
+static char *s_pMsgAllocated;
 
 void* start_scr_out() {
     int sz;
-    char msg[MAX_LENGTH];
-    void *item;
+    
     while(1) {
         // Wait for UDP_Rx
-        pthread_mutex_lock(s_UDP_Rx_mutex);
-		{
-            printf("Scr_out: Waiting for UDP_Rx\n");
-			pthread_cond_wait(s_UDP_Rx_cond, s_UDP_Rx_mutex);
-		}
-		pthread_mutex_unlock(s_UDP_Rx_mutex);
-
         // Get msg from list
-        pthread_mutex_lock(s_list_mutex);
-		{
-            printf("Scr_out: Getting msg from list\n");
-			item = List_trim(s_receiver_list);
-		}
-		pthread_mutex_unlock(s_list_mutex);
+        Receiver_List_trim(&s_pMsgAllocated);
 
         // Write to screen
-        strcpy(msg, (const char *)item);
         printf("Scr_out: Writing to screen\n");
-        if ((sz = write(STDOUT_FILENO, msg, MAX_LENGTH)) < 0) {
+        if ((sz = write(STDOUT_FILENO, s_pMsgAllocated, MAX_LENGTH)) < 0) {
             // return error
             printf("Cannot print received message.\n");
         }
 
         // Check if msg = "!\n" then shutdown
-        if (strcmp(msg, "!\n") == 0) {
-            printf("Scr_out: msg == !\\n\n");
-            // shutdown // break;
-            break;
-        }
+        // if (strcmp(msg, "!\n") == 0) {
+        //     printf("Scr_out: msg == !\\n\n");
+        //     // shutdown // break;
+        //     break;
+        // } else {
+        //     printf("Scr_out: Message is not \'!\'\n");
+        // }
+
+        // Free dynamically allocated memory in UDP_Rx
+        free(s_pMsgAllocated);
     }
     return NULL;
 }
 
-void Scr_out_init(List *receiver_list, pthread_mutex_t *list_mutex, pthread_mutex_t *UDP_Rx_mutex, pthread_cond_t *UDP_Rx_cond) {
-    s_receiver_list = receiver_list;
-    s_list_mutex = list_mutex;
-    s_UDP_Rx_mutex = UDP_Rx_mutex;
-    s_UDP_Rx_cond = UDP_Rx_cond;
+void Scr_out_init() {
+    SM_load_Scr_out_PID(&scr_out_PID);
     pthread_create(&scr_out_PID, NULL, start_scr_out, NULL);
 }
 
-void Scr_out_WaitForShutdown() {
+void Scr_out_Shutdown() {
+    printf("Shutdown Scr_out\n");
+
+    free(s_pMsgAllocated);
+    s_pMsgAllocated = NULL;
+
+    pthread_cancel(scr_out_PID);
     pthread_join(scr_out_PID, NULL);
     // int retcode;
     // pthread_join(scr_out_PID, (void**)&retcode);
@@ -72,3 +65,4 @@ void Scr_out_WaitForShutdown() {
     //     printf("There was an error in the process\n");
     // }
 }
+

@@ -6,20 +6,16 @@
 #include <pthread.h>
 
 #include "list.h"
+#include "List_Manager.h"
 #include "Kb_in.h"
 #include "Scr_out.h"
 #include "UDP_Tx.h"
 #include "UDP_Rx.h"
+#include "Shutdown_Manager.h"
 
 int main (int argc, char *argv[])
 {
-    pthread_mutex_t list_mutex = PTHREAD_MUTEX_INITIALIZER;
-    List* transmitter_list = List_create();
-    List* receiver_list = List_create();
-    pthread_cond_t UDP_Tx_cond = PTHREAD_COND_INITIALIZER;
-    pthread_cond_t UDP_Rx_cond = PTHREAD_COND_INITIALIZER;
-    pthread_mutex_t UDP_Tx_mutex = PTHREAD_MUTEX_INITIALIZER;
-    pthread_mutex_t UDP_Rx_mutex = PTHREAD_MUTEX_INITIALIZER;
+    
     
     printf ("This program was called with \"%s\".\n", argv[0]);
 
@@ -33,19 +29,19 @@ int main (int argc, char *argv[])
     printf("With port: %s\n", argv[3]);
 
     // SETUP
-    // Transmitter
-    Kb_in_init(transmitter_list, &list_mutex, &UDP_Tx_mutex, &UDP_Tx_cond);
-    UDP_Tx_init(argv[2], argv[3], transmitter_list, &list_mutex, &UDP_Tx_mutex, &UDP_Tx_cond);
+    // Init List
+    List_Manager_init();
 
-    // Receiver
-    UDP_Rx_init(argv[1], receiver_list, &list_mutex, &UDP_Rx_mutex, &UDP_Rx_cond);
-    Scr_out_init(receiver_list, &list_mutex, &UDP_Rx_mutex, &UDP_Rx_cond);
+    // Transmitter side
+    Kb_in_init();
+    UDP_Tx_init(argv[2], argv[3]);
+
+    // Receiver side
+    UDP_Rx_init(argv[1]);
+    Scr_out_init();
 
     // CLOSE
-    Kb_in_WaitForShutdown();
-    Scr_out_WaitForShutdown();
-    UDP_Tx_waitForShutdown();
-    UDP_Rx_waitForShutdown();
+    SM_wait_for_shutdown();
 
     return 0;
 }

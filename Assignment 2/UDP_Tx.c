@@ -11,6 +11,9 @@
 #include <pthread.h>
 
 #include "UDP_Tx.h"
+#include "List_Manager.h"
+#include "Shutdown_Manager.h"
+
 #define _POSIX_C_SOURCE 200112L
 
 
@@ -21,17 +24,11 @@ static pthread_t UDP_Tx_PID;
 static int s_sockfd;
 static struct addrinfo s_senderHints;
 static struct addrinfo *s_Ptr;
-static List *s_transmitter_list;
-static pthread_mutex_t *s_list_mutex;
-static pthread_mutex_t *s_UDP_Tx_mutex;
-static pthread_cond_t *s_UDP_Tx_cond;
-
 // Variables from main
 static char *s_remoteHostname, *s_remotePort;
+static char *s_pMsgAllocated = NULL;
 
 void* start_sender() {
-    void *item;
-    char msg[MAX_LENGTH];
 
     memset(&s_senderHints, 0, sizeof s_senderHints);
 	s_senderHints.ai_family = AF_INET;
@@ -51,7 +48,6 @@ void* start_sender() {
 			perror("talker: socket");
 			continue;
 		}
-
 		break;
 	}
 
@@ -64,55 +60,51 @@ void* start_sender() {
 
     while(1) {
         // Wait for Kb_in
-        pthread_mutex_lock(s_UDP_Tx_mutex);
-		{
-            printf("UDP_Tx: Waiting for Kb_in\n");
-			pthread_cond_wait(s_UDP_Tx_cond, s_UDP_Tx_mutex);
-		}
-		pthread_mutex_unlock(s_UDP_Tx_mutex);
-
         // Get msg from list
-        pthread_mutex_lock(s_list_mutex);
-		{
-            printf("UDP_Tx: Getting msg from list\n");
-			item = List_trim(s_transmitter_list);
-		}
-		pthread_mutex_unlock(s_list_mutex);
-
-        strcpy(msg, (const char *)item);
+        Transmitter_List_trim(&s_pMsgAllocated);
 
         // Send the msg to remote
         int numbytes;
         printf("UDP_Tx: Sending the msg to remote\n");
-        if ((numbytes = sendto(s_sockfd, msg, strlen(msg), 0,
+        if (s_pMsgAllocated == NULL) {
+            printf("This s_pMsgAllocated is NULL\n");
+        } else {
+            printf("Not NULL %s\n", s_pMsgAllocated);
+        }
+        if ((numbytes = sendto(s_sockfd, s_pMsgAllocated, strlen(s_pMsgAllocated), 0,
                 s_Ptr->ai_addr, s_Ptr->ai_addrlen)) == -1) {
             perror("talker: sendto");
             // return UDP_TX_FAIL;
         }
-
+        printf("Before strcmp\n");
         // If msg = "!\n", then break the loop and return success
-        if (strcmp(msg, "!\n") == 0) {
+        if (strcmp(s_pMsgAllocated, "!\n") == 0) {
             printf("UDP_Tx: msg == !\\n\n");
             // shutdown
-            break;
+            SM_trigger_shutdown();
         }
+        printf("After strcmp\n");
+        free(s_pMsgAllocated);
     }
     return NULL;
-    // return UDP_TX_SUCCESS;
 }
 
-void UDP_Tx_init(char *remoteHostname, char *remotePort, List *transmitter_list, pthread_mutex_t *list_mutex, pthread_mutex_t *UDP_Tx_mutex, pthread_cond_t *UDP_Tx_cond) {
+
+void UDP_Tx_init(char *remoteHostname, char *remotePort) {
     s_remoteHostname = remoteHostname;
     s_remotePort = remotePort;
-    s_transmitter_list = transmitter_list;
-    s_list_mutex = list_mutex;
-    s_UDP_Tx_mutex = UDP_Tx_mutex;
-    s_UDP_Tx_cond = UDP_Tx_cond;
+    SM_load_UDP_Tx_PID(&UDP_Tx_PID);
     pthread_create(&UDP_Tx_PID, NULL, start_sender, NULL);
 }
 
-void UDP_Tx_waitForShutdown() {
+void UDP_Tx_Shutdown() {
+    printf("Shutdown UDP_Tx\n");
+    
+    free(s_pMsgAllocated);
+    s_pMsgAllocated = NULL;
+    close(s_sockfd);
 
+    pthread_cancel(UDP_Tx_PID);
     pthread_join(UDP_Tx_PID, NULL);
     // int retcode;
     // pthread_join(UDP_Tx_PID, (void**)&retcode);
