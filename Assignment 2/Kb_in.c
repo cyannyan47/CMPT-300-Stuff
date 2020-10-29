@@ -24,25 +24,15 @@ void* start_kb_in() {
 		s_pMsgAllocated = (char *)malloc(MAX_LENGTH);
 
         // Read from keyboard
-        printf("Kb_in: Reading from keyboard.\n");
         if ((sz = read(STDOUT_FILENO, s_pMsgAllocated, MAX_LENGTH)) < 0) {
-            // return error
-            printf("Couldn't read from keyboard\n");
+            printf("Kb_in: Couldn't read from keyboard.\n");
         }
 
         null_term_idx = sz < MAX_LENGTH ? sz : MAX_LENGTH - 1;
 		s_pMsgAllocated[null_term_idx] = '\0';
 
-        // Add to list
+        // Prepend to transmitter list
         Transmitter_List_prepend(s_pMsgAllocated);
-
-        // if (strcmp(msg, "!\n") == 0) {
-        //     printf("Kb_in: msg == !\\n\n");
-        //     // shutdown // break;
-        //     break;
-        // } else {
-        //     printf("Kb_in: Message is not \'!\'\n");
-        // }
     }
     return NULL;
 }
@@ -52,20 +42,8 @@ void Kb_in_init() {
 }
 
 void Kb_in_Shutdown() {
-    printf("Shutdown Kb_in\n");
-
     free(s_pMsgAllocated);
     s_pMsgAllocated = NULL;
 
     pthread_cancel(kb_in_PID);
-    // pthread_join(kb_in_PID, NULL);
-    
-    // int retcode;
-    // pthread_join(kb_in_PID, (void**)&retcode);
-
-    // if (retcode == KB_IN_SUCCESS) {
-    //     printf("Process terminated by remote sending \"!\"\n");
-    // } else {
-    //     printf("There was an error in the process\n");
-    // }
 }

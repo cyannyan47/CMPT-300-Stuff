@@ -15,18 +15,10 @@
 
 int main (int argc, char *argv[])
 {
-    
-    
-    printf ("This program was called with \"%s\".\n", argv[0]);
-
     if (argc != 4) {
-        printf("Usage:\ns-talk [local port number] [remote hostname] [remote port number]\n");
+        printf("Usage: s-talk [local port number] [remote hostname] [remote port number]\n");
         return EXIT_FAILURE;
     }
-    
-    printf("My Port number: %s\n", argv[1]);
-    printf("Want to connect to machine: %s\n", argv[2]);
-    printf("With port: %s\n", argv[3]);
 
     // SETUP
     // Init List

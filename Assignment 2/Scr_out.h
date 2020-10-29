@@ -4,6 +4,8 @@
 #include <pthread.h>
 #include "list.h"
 
+#define MAX_LENGTH 1024
+
 #define SCR_OUT_FAIL -1
 #define SCR_OUT_SUCCESS 0
 

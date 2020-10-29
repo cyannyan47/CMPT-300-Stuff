@@ -25,7 +25,6 @@ void List_Manager_init() {
 void Transmitter_List_prepend(char *s_pMsgAllocated) {
     pthread_mutex_lock(&list_mutex);
     {
-        printf("Kb_in: Prepending message to transmitter list.\n");
         if (List_prepend(transmitter_list, (void *)s_pMsgAllocated) == LIST_FAIL) {
             printf("Kb_in: Prepending message to transmitter list FAILED.\n");
         }
@@ -41,7 +40,6 @@ void Transmitter_List_trim(char **s_pMsgAllocated) {
         if (transmitter_list->isEmpty) {
             pthread_cond_wait(&transmitter_list_avail, &list_mutex);
         }
-        printf("UDP_Tx: Trimming message from transmitter list.\n");
         item = List_trim(transmitter_list);
     }
     pthread_mutex_unlock(&list_mutex);
@@ -50,17 +48,21 @@ void Transmitter_List_trim(char **s_pMsgAllocated) {
         printf("UDP_Tx: Trimming message from transmitter list FAILED.\n");
     }
     else {
-        printf("Before strcpy\n");
-        // strcpy(s_pMsgAllocated, (const char *)item);
         *s_pMsgAllocated = (char *)item;
-        printf("After strcpy\n");
     }
+}
+
+void Transmitter_List_signal() {
+    pthread_mutex_lock(&list_mutex);
+    {
+        pthread_cond_signal(&transmitter_list_avail);
+    }
+    pthread_mutex_unlock(&list_mutex);
 }
 
 void Receiver_List_prepend(char *s_pMsgAllocated) {
     pthread_mutex_lock(&list_mutex);
     {
-        printf("UDP_Rx: Prepending message to receiver list.\n");
         if (List_prepend(receiver_list, (void *)s_pMsgAllocated) == LIST_FAIL) {
             printf("UDP_Rx: Prepending message to receiver list FAILED.\n");
         }
@@ -76,7 +78,6 @@ void Receiver_List_trim(char **s_pMsgAllocated) {
         if (transmitter_list->isEmpty) {
             pthread_cond_wait(&receiver_list_avail, &list_mutex);
         }
-        printf("Scr_out: Trimming message from receiver list.\n");
         item = List_trim(receiver_list);
     }
     pthread_mutex_unlock(&list_mutex);
@@ -85,9 +86,16 @@ void Receiver_List_trim(char **s_pMsgAllocated) {
         printf("Scr_out: Trimming message from receiver list FAILED.\n");
     }
     else {
-        // strcpy(s_pMsgAllocated, (const char *)item);
         *s_pMsgAllocated = (char *)item;
     }
+}
+
+void Receiver_List_signal() {
+    pthread_mutex_lock(&list_mutex);
+    {
+        pthread_cond_signal(&receiver_list_avail);
+    }
+    pthread_mutex_unlock(&list_mutex);
 }
 
 void freeFN(void *ptr) {

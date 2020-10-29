@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <pthread.h>
 
 #include "Shutdown_Manager.h"
@@ -36,22 +37,18 @@ void SM_wait_for_shutdown() {
     pthread_join(*s_scr_out_PID, NULL);
     pthread_join(*s_UDP_Tx_PID, NULL);
     pthread_join(*s_UDP_Rx_PID, NULL);
+    List_Manager_shutdown();
 }
 
 void SM_trigger_shutdown_local() {
     Kb_in_Shutdown();
     UDP_Rx_Shutdown();
-    Scr_out_Shutdown();
-    UDP_Tx_Shutdown();
-
-    List_Manager_shutdown();
+    Receiver_List_signal();
 }
 
 void SM_trigger_shutdown_remote() {
     Kb_in_Shutdown();
-    UDP_Tx_Shutdown();
-    Scr_out_Shutdown();
+    Transmitter_List_signal();
+    Receiver_List_signal();
     UDP_Rx_Shutdown();
-
-    List_Manager_shutdown();
 }

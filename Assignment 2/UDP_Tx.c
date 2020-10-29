@@ -14,11 +14,6 @@
 #include "List_Manager.h"
 #include "Shutdown_Manager.h"
 
-#define _POSIX_C_SOURCE 200112L
-
-
-#define MAX_LENGTH 1024
-
 static pthread_t UDP_Tx_PID;
 
 static int s_sockfd;
@@ -37,7 +32,7 @@ void* start_sender() {
     int rv;
     struct addrinfo *s_senderInfo;
     if ((rv = getaddrinfo(s_remoteHostname, s_remotePort, &s_senderHints, &s_senderInfo)) != 0) {
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+		fprintf(stderr, "UDP_Tx: getaddrinfo: %s\n", gai_strerror(rv));
 		// return UDP_TX_FAIL;
 	}
 
@@ -45,48 +40,44 @@ void* start_sender() {
     for(s_Ptr = s_senderInfo; s_Ptr != NULL; s_Ptr = s_Ptr->ai_next) {
 		if ((s_sockfd = socket(s_Ptr->ai_family, s_Ptr->ai_socktype,
 				s_Ptr->ai_protocol)) == -1) {
-			perror("talker: socket");
+			perror("UDP_Tx: socket FAILED\n");
 			continue;
 		}
 		break;
 	}
 
     if (s_Ptr == NULL) {
-		fprintf(stderr, "talker: failed to create socket\n");
-		// return UDP_TX_FAIL;
+		fprintf(stderr, "UDP_Tx: FAILED to create socket\n");
 	}
 
     freeaddrinfo(s_senderInfo);
 
     while(1) {
-        // Wait for Kb_in
-        // Get msg from list
+        // Trimming message from transmitter list
         Transmitter_List_trim(&s_pMsgAllocated);
 
-        // Send the msg to remote
-        int numbytes;
-        printf("UDP_Tx: Sending the msg to remote\n");
-        if (s_pMsgAllocated == NULL) {
-            printf("This s_pMsgAllocated is NULL\n");
-        } else {
-            printf("Not NULL %s\n", s_pMsgAllocated);
+        // Trimmed message is only NULL when it get signal shutdown from UDP_Rx
+        if (!s_pMsgAllocated) {
+            break;
         }
+
+        // Send the message to remote
+        int numbytes;
         if ((numbytes = sendto(s_sockfd, s_pMsgAllocated, strlen(s_pMsgAllocated), 0,
                 s_Ptr->ai_addr, s_Ptr->ai_addrlen)) == -1) {
-            perror("talker: sendto");
-            // return UDP_TX_FAIL;
+            perror("UDP_Tx: sendto FAILED\n");
         }
-        printf("Before strcmp\n");
-        // If msg = "!\n", then break the loop and return success
+        
+        // If msg = "!\n", then trigger shutdown and break the loop
         if (strcmp(s_pMsgAllocated, "!\n") == 0) {
-            printf("UDP_Tx: msg == !\\n\n");
-            // shutdown
-            SM_trigger_shutdown_local();
+            SM_trigger_shutdown_local(); // Trigger shut down for the other three local threads
+            break;
         }
-        printf("After strcmp\n");
+        
         free(s_pMsgAllocated);
         s_pMsgAllocated = NULL;
     }
+    UDP_Tx_Shutdown();
     return NULL;
 }
 
@@ -99,21 +90,7 @@ void UDP_Tx_init(char *remoteHostname, char *remotePort) {
 }
 
 void UDP_Tx_Shutdown() {
-    printf("Shutdown UDP_Tx\n");
-    
     free(s_pMsgAllocated);
     s_pMsgAllocated = NULL;
     close(s_sockfd);
-
-    pthread_cancel(UDP_Tx_PID);
-    // pthread_join(UDP_Tx_PID, NULL);
-
-    // int retcode;
-    // pthread_join(UDP_Tx_PID, (void**)&retcode);
-    // // print scr_out result
-    // if (retcode == UDP_TX_SUCCESS) {
-    //     printf("Process terminated by sending \"!\"\n");
-    // } else {
-    //     printf("There was an error in the process\n");
-    // }
 }

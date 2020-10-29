@@ -1,10 +1,14 @@
 #ifndef UDP_TX_H_
 #define UDP_TX_H_
 
+#include "list.h"
+
+#define _POSIX_C_SOURCE 200112L
+
 #define UDP_TX_FAIL -1
 #define UDP_TX_SUCCESS 0
 
-#include "list.h"
+#define MAX_LENGTH 1024
 
 // Initialize socket to send messages to remote machine
 void UDP_Tx_init(char *remoteHostname, char *remotePort);
