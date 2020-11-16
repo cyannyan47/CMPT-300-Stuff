@@ -5,14 +5,18 @@
 #define READYQUEUES_H
 
 #include "PCB.h"
+#include "list.h"
 
 void Init_ReadyQueues();
 
-void AddPCBtoPrioHigh();
+void AddPCBtoPrioHigh(PCB* procP);
 
-void AddPCBtoPrioNorm();
+void AddPCBtoPrioNorm(PCB* procP);
 
-void AddPCBtoPrioLow();
+void AddPCBtoPrioLow(PCB* procP);
 
+// Decide the next PCB to run
+// And pop that PCB out of its queue
+PCB* ScheduleNextPCB();
 
 #endif
