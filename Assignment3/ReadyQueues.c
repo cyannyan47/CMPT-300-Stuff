@@ -5,6 +5,12 @@ static List* HighPrioListP;
 static List* NormPrioListP;
 static List* LowPrioListP;
 
+// pComparisonArg is an int pointer
+static bool compare_pid(void *pItem, void *pComparisonArg)
+{
+    return (((PCB*)pItem)->pid == ((int*)pComparisonArg));
+} 
+
 void Init_ReadyQueues() {
     // Create 3 ready queues
     HighPrioListP = List_create();
@@ -12,16 +18,31 @@ void Init_ReadyQueues() {
     LowPrioListP = List_create();
 }
 
-void AddPCBtoPrioHigh(PCB* procP) {
-    List_prepend(HighPrioListP, procP);
+int AddPCBtoPrioHigh(PCB* procP) {
+    int status;
+    if ((status = List_prepend(HighPrioListP, procP)) == LIST_FAIL) {
+        return READYQ_FAIL;
+    } else {
+        return READYQ_SUCCESS;
+    }
 }
 
-void AddPCBtoPrioNorm(PCB* procP) {
-    List_prepend(NormPrioListP, procP);
+int AddPCBtoPrioNorm(PCB* procP) {
+    int status;
+    if ((status = List_prepend(NormPrioListP, procP)) == LIST_FAIL) {
+        return READYQ_FAIL;
+    } else {
+        return READYQ_SUCCESS;
+    }
 }
 
-void AddPCBtoPrioLow(PCB* procP) {
-    List_prepend(LowPrioListP, procP);
+int AddPCBtoPrioLow(PCB* procP) {
+    int status;
+    if ((status = List_prepend(LowPrioListP, procP)) == LIST_FAIL) {
+        return READYQ_FAIL;
+    } else {
+        return READYQ_SUCCESS;
+    }
 }
 
 PCB* ScheduleNextPCB() {
@@ -51,4 +72,80 @@ PCB* ScheduleNextPCB() {
     }
 
     return NULL;
+}
+
+PCB* FindInPrioHigh(int pid) {
+    int targetPid = pid;
+    PCB* targetPCBPtr = List_search(HighPrioListP, &compare_pid, &targetPid);
+    return targetPCBPtr;
+}
+
+PCB* FindInPrioNorm(int pid) {
+    int targetPid = pid;
+    PCB* targetPCBPtr = List_search(NormPrioListP, &compare_pid, &targetPid);
+    return targetPCBPtr;
+}
+
+PCB* FindInPrioLow(int pid) {
+    int targetPid = pid;
+    PCB* targetPCBPtr = List_search(LowPrioListP, &compare_pid, &targetPid);
+    return targetPCBPtr;
+}
+
+PCB* FindAndRemovePrioHigh(int pid) {
+    // Find
+    int targetPid = pid;
+    PCB* targetPCBPtr = List_search(HighPrioListP, &compare_pid, &targetPid);
+
+    if (targetPCBPtr == NULL) {
+        printf("ReadyQueue: Can't find process with pid %d!\n", pid);
+        return NULL;
+    }
+    
+    // Remove
+    targetPCBPtr = List_remove(HighPrioListP);
+    if (targetPCBPtr == NULL) {
+        printf("ReadyQueue: Can't remove process with pid %d!\n", pid);
+        return NULL;
+    }
+
+    return targetPCBPtr;
+}
+PCB* FindAndRemovePrioNorm(int pid) {
+    // Find
+    int targetPid = pid;
+    PCB* targetPCBPtr = List_search(NormPrioListP, &compare_pid, &targetPid);
+
+    if (targetPCBPtr == NULL) {
+        printf("ReadyQueue: Can't find process with pid %d!\n", pid);
+        return NULL;
+    }
+    
+    // Remove
+    targetPCBPtr = List_remove(HighPrioListP);
+    if (targetPCBPtr == NULL) {
+        printf("ReadyQueue: Can't remove process with pid %d!\n", pid);
+        return NULL;
+    }
+
+    return targetPCBPtr;
+}
+PCB* FindAndRemovePrioLow(int pid) {
+    // Find
+    int targetPid = pid;
+    PCB* targetPCBPtr = List_search(LowPrioListP, &compare_pid, &targetPid);
+
+    if (targetPCBPtr == NULL) {
+        printf("ReadyQueue: Can't find process with pid %d!\n", pid);
+        return NULL;
+    }
+    
+    // Remove
+    targetPCBPtr = List_remove(HighPrioListP);
+    if (targetPCBPtr == NULL) {
+        printf("ReadyQueue: Can't remove process with pid %d!\n", pid);
+        return NULL;
+    }
+
+    return targetPCBPtr;
 }

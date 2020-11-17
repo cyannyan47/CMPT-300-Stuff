@@ -3,6 +3,7 @@
 #include "PCB.h"
 
 static PCB* runningProc;
+bool isInitExited;
 
 void CLI_Init() {
     // Init ready queue
@@ -13,15 +14,63 @@ void CLI_Init() {
     // Start "init" process
     PCB* initProcPtr = PCB_Create_Init();
     runningProc = initProcPtr;
+    isInitExited = false;
+}
+
+bool CLI_IsInitExited() {
+    return isInitExited;
 }
 
 void CLI_Create(int prio) {
+    // Create a PCB struct
+    PCB* newProcPtr = PCB_Create(prio);
 
+    // Put the new PCB in the ready queue
+    switch(prio) {
+        case 0:
+            AddPCBtoPrioHigh(newProcPtr);
+            break;
+        case 1:
+            AddPCBtoPrioNorm(newProcPtr);
+            break;
+        case 2:
+            AddPCBtoPrioLow(newProcPtr);
+            break;
+        default:
+            printf("Invalid priority value %d!\n", prio);
+            // Demalloc newProcPtr
+            PCB_Free(newProcPtr);
+    }
 }
 
-void CLI_Fork();
+void CLI_Fork() {
+    if (runningProc->pid == 0) {
+        printf("Can't fork the init process!\n");
+        return;
+    }
+    PCB* newProcPtr = PCB_Copy(runningProc);
 
-void CLI_Kill(int pid);
+    // Put the new PCB in the ready queue
+    switch(newProcPtr->prio) {
+        case 0:
+            AddPCBtoPrioHigh(newProcPtr);
+            break;
+        case 1:
+            AddPCBtoPrioNorm(newProcPtr);
+            break;
+        case 2:
+            AddPCBtoPrioLow(newProcPtr);
+            break;
+        default:
+            printf("Invalid priority value %d while forking!\n", newProcPtr->prio);
+            // Demalloc newProcPtr
+            PCB_Free(newProcPtr);
+    }
+}
+
+void CLI_Kill(int pid) {
+    
+}
 
 void CLI_Exit();
 
