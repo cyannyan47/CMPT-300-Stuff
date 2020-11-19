@@ -5,6 +5,7 @@
 
 #include "list.h"
 #include "PCB.h"
+#include <stdbool.h>
 
 #define SEND_SUCCESS 0
 #define SEND_FAIL -1
@@ -13,8 +14,14 @@ void Init_Send();
 
 int AddToSendList(PCB* procP);
 
-PCB* FindSendInQueue(int pid);
+int FindSendInQueue(int pid, PCB** retPtr);
 
-PCB* FindAndRemoveSendInQueue(int pid);
+int FindAndRemoveSendInQueue(int pid, PCB** retPtr);
+
+bool IsSendListEmpty();
+
+void PrintAllSendStatus();
+
+void CleanAllSendList();
 
 #endif

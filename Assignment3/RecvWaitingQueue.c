@@ -1,48 +1,81 @@
 #include "RecvWaitingQueue.h"
-#include "stdlib.h"
+#include <stdlib.h>
 
-static List* sendList;
+static List* recvList;
 
 static bool compare_pid(void *pItem, void *pComparisonArg)
 {
     return (((PCB*)pItem)->pid == ((int*)pComparisonArg));
-} 
+}
+
+static void listPCBFree(void *pItem)
+{
+    PCB_Free((PCB*)pItem);
+}
+
 
 void Init_Recv() {
-    sendList = List_create();
+    recvList = List_create();
 }
 
 int AddToRecvList(PCB* procP) {
     int status;
-    if ((status = List_prepend(sendList, procP)) == LIST_FAIL) {
+    if ((status = List_prepend(recvList, procP)) == LIST_FAIL) {
         return RECV_FAIL;
     } else {
         return RECV_SUCCESS;
     }
 }
 
-PCB* FindRecvInQueue(int pid) {
+int FindRecvInQueue(int pid, PCB** retPtr) {
     int targetPid = pid;
-    PCB* targetPCBPtr = List_search(sendList, &compare_pid, &targetPid);
-    return targetPCBPtr;
+    PCB* targetPCBPtr = List_search(recvList, compare_pid, &targetPid);
+    *retPtr = targetPCBPtr;
+    return RECV_SUCCESS;
 }
 
-PCB* FindAndRemoveRecvInQueue(int pid) {
+int FindAndRemoveRecvInQueue(int pid, PCB** retPtr) {
     // Find
     int targetPid = pid;
-    PCB* targetPCBPtr = List_search(sendList, &compare_pid, &targetPid);
+    PCB* targetPCBPtr = List_search(recvList, compare_pid, &targetPid);
 
     if (targetPCBPtr == NULL) {
         printf("RecvQueue: Can't find process with pid %d!\n", pid);
-        return NULL;
+        *retPtr = NULL;
+        return RECV_FAIL;
     }
     
     // Remove
-    targetPCBPtr = List_remove(sendList);
+    targetPCBPtr = List_remove(recvList);
     if (targetPCBPtr == NULL) {
         printf("RecvQueue: Can't remove process with pid %d!\n", pid);
-        return NULL;
+        *retPtr = NULL;
+        return RECV_FAIL;
     }
 
-    return targetPCBPtr;
+    *retPtr = targetPCBPtr;
+    return RECV_SUCCESS;
+}
+
+bool IsRecvListEmpty() {
+    if (List_count(recvList) != 0) {
+        return false;
+    }
+    return true;
+}
+
+void PrintAllRecvStatus() {
+    PCB* currProc;
+    printf("Receiver processes waiting for send: <List start>\t");
+    currProc = List_first(recvList);
+    while (currProc != NULL) {
+        printf("(%d) ->\t", currProc->pid);
+        List_next(recvList);
+    }
+    printf("<List end>\n");
+}
+
+void CleanAllRecvList() {
+    List_free(recvList, listPCBFree);
+    recvList = NULL;
 }

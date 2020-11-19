@@ -4,17 +4,24 @@
 
 #include "list.h"
 #include "PCB.h"
+#include <stdbool.h>
 
 #define RECV_SUCCESS 0
 #define RECV_FAIL -1
 
 void Init_Recv();
 
+// Make sure to update procP before using this function
 int AddToRecvList(PCB* procP);
 
-PCB* FindRecvInQueue(int pid);
+int FindRecvInQueue(int pid, PCB** retPtr);
 
-PCB* FindAndRemoveRecvInQueue(int pid);
+int FindAndRemoveRecvInQueue(int pid, PCB** retPtr);
 
+bool IsRecvListEmpty();
+
+void PrintAllRecvStatus();
+
+void CleanAllRecvList();
 
 #endif

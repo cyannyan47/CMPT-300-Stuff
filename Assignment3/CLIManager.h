@@ -38,4 +38,6 @@ void CLI_ProcInfo(int pid);
 
 void CLI_TotalInfo();
 
+void CLI_End();
+
 #endif
