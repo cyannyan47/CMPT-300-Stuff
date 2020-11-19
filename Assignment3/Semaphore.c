@@ -1,4 +1,5 @@
 #include "Semaphore.h"
+#include <stdlib.h>
 #include <stdio.h>
 
 static Semaphore* semaphoreArrayPtr[MAX_SEM_AMOUNT];
@@ -6,7 +7,7 @@ static Semaphore* semaphoreArrayPtr[MAX_SEM_AMOUNT];
 // pComparisonArg is an int pointer
 static bool compare_pid(void *pItem, void *pComparisonArg)
 {
-    return (((PCB*)pItem)->pid == ((int*)pComparisonArg));
+    return (((PCB*)pItem)->pid == (*(int*)pComparisonArg));
 } 
 
 static void listPCBFree(void *pItem)
@@ -157,7 +158,7 @@ bool Semaphore_IsAllEmpty() {
 
         // Found a PCB blocked inside a semaphore
         // Return false
-        if (List_count(semaphoreArrayPtr[i]->processList != 0)) {
+        if (List_count(semaphoreArrayPtr[i]->processList) != 0) {
             return false;
         }
     }
@@ -176,10 +177,10 @@ void Semaphore_PrintStatus() {
         }
         printf("Semaphore %d: ", i);
         printf("<Semaphore In>\t");
-        currProc = List_first(semaphoreArrayPtr[i]);
+        currProc = List_first(semaphoreArrayPtr[i]->processList);
         while (currProc != NULL) {
             printf("(%d) ->\t", currProc->pid);
-            List_next(semaphoreArrayPtr[i]);
+            List_next(semaphoreArrayPtr[i]->processList);
         }
         printf("<Semaphore Out>\n");
     }

@@ -39,7 +39,7 @@ void CLI_Create(int prio) {
     PCB* newProcPtr = PCB_Create(prio);
 
     // Run the process immediately when the process init is running
-    if (runningProc = initProc) {
+    if (runningProc == initProc) {
         PCB_Run(newProcPtr);
         runningProc = newProcPtr;
 
@@ -450,19 +450,19 @@ void CLI_ProcInfo(int pid) {
         PCB_PrintInfo(targetPCB);
     }
 
-    int status = FindRecvInQueue(pid, &targetPCB);
+    status = FindRecvInQueue(pid, &targetPCB);
     if (status == RECV_SUCCESS) {
         printf("Process %d is waiting for a message from a sender\n", pid);
         PCB_PrintInfo(targetPCB);
     }
 
-    int status = FindSendInQueue(pid, &targetPCB);
+    status = FindSendInQueue(pid, &targetPCB);
     if (status == SEND_SUCCESS) {
         printf("Process %d is waiting for a reply\n", pid);
         PCB_PrintInfo(targetPCB);
     }
 
-    int status = Semaphore_Findpid(pid, &targetPCB);
+    status = Semaphore_Findpid(pid, &targetPCB);
     if (status == SEM_SUCCESS) {
         printf("Process %d is blocked by a semaphore\n", pid);
         PCB_PrintInfo(targetPCB);

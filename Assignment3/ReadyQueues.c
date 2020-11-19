@@ -1,5 +1,6 @@
 #include "ReadyQueues.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 static List* HighPrioListP;
 static List* NormPrioListP;
@@ -8,7 +9,7 @@ static List* LowPrioListP;
 // pComparisonArg is an int pointer
 static bool compare_pid(void *pItem, void *pComparisonArg)
 {
-    return (((PCB*)pItem)->pid == ((int*)pComparisonArg));
+    return (((PCB*)pItem)->pid == (*(int*)pComparisonArg));
 }
 
 static void listPCBFree(void *pItem)
@@ -148,12 +149,12 @@ int FindInPrioAll(int pid, PCB** retPtr) {
         *retPtr = targetPCBPtr;
         return READYQ_SUCCESS;
     }
-    PCB* targetPCBPtr = List_search(NormPrioListP, compare_pid, &targetPid);
+    targetPCBPtr = List_search(NormPrioListP, compare_pid, &targetPid);
     if (targetPCBPtr != NULL) {
         *retPtr = targetPCBPtr;
         return READYQ_SUCCESS;
     }
-    PCB* targetPCBPtr = List_search(LowPrioListP, compare_pid, &targetPid);
+    targetPCBPtr = List_search(LowPrioListP, compare_pid, &targetPid);
     if (targetPCBPtr != NULL) {
         *retPtr = targetPCBPtr;
         return READYQ_SUCCESS;

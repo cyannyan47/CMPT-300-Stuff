@@ -1,11 +1,12 @@
 #include "RecvWaitingQueue.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 static List* recvList;
 
 static bool compare_pid(void *pItem, void *pComparisonArg)
 {
-    return (((PCB*)pItem)->pid == ((int*)pComparisonArg));
+    return (((PCB*)pItem)->pid == (*(int*)pComparisonArg));
 }
 
 static void listPCBFree(void *pItem)

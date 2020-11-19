@@ -1,11 +1,12 @@
 #include "SendWaitingQueue.h"
-#include "stdlib.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 static List* sendList;
 
 static bool compare_pid(void *pItem, void *pComparisonArg)
 {
-    return (((PCB*)pItem)->pid == ((int*)pComparisonArg));
+    return (((PCB*)pItem)->pid == (*(int*)pComparisonArg));
 }
 
 static void listPCBFree(void *pItem)
@@ -31,7 +32,7 @@ int FindSendInQueue(int pid, PCB** retPtr) {
     int targetPid = pid;
     PCB* targetPCBPtr = List_search(sendList, compare_pid, &targetPid);
     *retPtr = targetPCBPtr;
-    return targetPCBPtr;
+    return SEND_SUCCESS;
 }
 
 int FindAndRemoveSendInQueue(int pid, PCB** retPtr) {

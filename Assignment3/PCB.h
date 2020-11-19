@@ -10,7 +10,7 @@
 #define PCB_SUCCESS 0
 #define PCB_FAIL -1
 
-typedef enum PCB_State State;
+typedef enum PCB_State RunState;
 enum PCB_State {
     RUNNING,
     READY,
@@ -27,7 +27,7 @@ typedef struct PCB_s PCB;
 struct PCB_s {
     int pid;
     int prio;   // Only 0: high, 1: norm, 2: low
-    State currState;
+    RunState currState;
 
     Comms_info* recv_info;
     Comms_info* repl_info;
