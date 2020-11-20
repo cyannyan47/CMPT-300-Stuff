@@ -465,6 +465,10 @@ void CLI_SemV(int semID) {
 }
 
 void CLI_ProcInfo(int pid) {
+    if (runningProc->pid == pid) {
+        printf("Process %d is running\n", pid);
+        PCB_PrintInfo(runningProc);
+    }
     PCB* targetPCB;
     int status = FindInPrioAll(pid, &targetPCB);
     if (status == READYQ_SUCCESS) {
@@ -492,6 +496,7 @@ void CLI_ProcInfo(int pid) {
 }
 
 void CLI_TotalInfo() {
+    printf("The current running process: %d\n", runningProc->pid);
     printf("Ready queue status:\n");
     PrintAllReadyQStatus();
     printf("\nSemaphore queue status:\n");

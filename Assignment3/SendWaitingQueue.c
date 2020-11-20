@@ -30,7 +30,12 @@ int AddToSendList(PCB* procP) {
 
 int FindSendInQueue(int pid, PCB** retPtr) {
     int targetPid = pid;
+    List_first(sendList);
     PCB* targetPCBPtr = List_search(sendList, compare_pid, &targetPid);
+    if (targetPCBPtr == NULL) {
+        *retPtr = NULL;
+        return SEND_FAIL;
+    }
     *retPtr = targetPCBPtr;
     return SEND_SUCCESS;
 }
@@ -38,6 +43,7 @@ int FindSendInQueue(int pid, PCB** retPtr) {
 int FindAndRemoveSendInQueue(int pid, PCB** retPtr) {
     // Find
     int targetPid = pid;
+    List_first(sendList);
     PCB* targetPCBPtr = List_search(sendList, compare_pid, &targetPid);
 
     if (targetPCBPtr == NULL) {

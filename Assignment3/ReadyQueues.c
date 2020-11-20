@@ -105,13 +105,13 @@ int ScheduleNextPCB(PCB** retPtr) {
         return READYQ_SUCCESS;
     }
 
-    if(List_count(HighPrioListP) != 0) {
+    if(List_count(NormPrioListP) != 0) {
         trimPCBPtr = List_trim(NormPrioListP);
         *retPtr = trimPCBPtr;
         return READYQ_SUCCESS;
     }
 
-    if(List_count(HighPrioListP) != 0) {
+    if(List_count(LowPrioListP) != 0) {
         trimPCBPtr = List_trim(LowPrioListP);
         *retPtr = trimPCBPtr;
         return READYQ_SUCCESS;
@@ -123,37 +123,55 @@ int ScheduleNextPCB(PCB** retPtr) {
 
 int FindInPrioHigh(int pid, PCB** retPtr) {
     int targetPid = pid;
+    List_first(HighPrioListP);
     PCB* targetPCBPtr = List_search(HighPrioListP, compare_pid, &targetPid);
+    if (targetPCBPtr == NULL) {
+        *retPtr = NULL;
+        return READYQ_FAIL;
+    }
     *retPtr = targetPCBPtr;
     return READYQ_SUCCESS;
 }
 
 int FindInPrioNorm(int pid, PCB** retPtr) {
     int targetPid = pid;
+    List_first(NormPrioListP);
     PCB* targetPCBPtr = List_search(NormPrioListP, compare_pid, &targetPid);
+    if (targetPCBPtr == NULL) {
+        *retPtr = NULL;
+        return READYQ_FAIL;
+    }
     *retPtr = targetPCBPtr;
     return READYQ_SUCCESS;
 }
 
 int FindInPrioLow(int pid, PCB** retPtr) {
     int targetPid = pid;
+    List_first(LowPrioListP);
     PCB* targetPCBPtr = List_search(LowPrioListP, compare_pid, &targetPid);
+    if (targetPCBPtr == NULL) {
+        *retPtr = NULL;
+        return READYQ_FAIL;
+    }
     *retPtr = targetPCBPtr;
     return READYQ_SUCCESS;
 }
 
 int FindInPrioAll(int pid, PCB** retPtr) {
     int targetPid = pid;
+    List_first(HighPrioListP);
     PCB* targetPCBPtr = List_search(HighPrioListP, compare_pid, &targetPid);
     if (targetPCBPtr != NULL) {
         *retPtr = targetPCBPtr;
         return READYQ_SUCCESS;
     }
+    List_first(NormPrioListP);
     targetPCBPtr = List_search(NormPrioListP, compare_pid, &targetPid);
     if (targetPCBPtr != NULL) {
         *retPtr = targetPCBPtr;
         return READYQ_SUCCESS;
     }
+    List_first(LowPrioListP);
     targetPCBPtr = List_search(LowPrioListP, compare_pid, &targetPid);
     if (targetPCBPtr != NULL) {
         *retPtr = targetPCBPtr;
@@ -167,6 +185,7 @@ int FindInPrioAll(int pid, PCB** retPtr) {
 int FindAndRemovePrioHigh(int pid, PCB** retPtr) {
     // Find
     int targetPid = pid;
+    List_first(HighPrioListP);
     PCB* targetPCBPtr = List_search(HighPrioListP, compare_pid, &targetPid);
 
     if (targetPCBPtr == NULL) {
@@ -190,6 +209,7 @@ int FindAndRemovePrioHigh(int pid, PCB** retPtr) {
 int FindAndRemovePrioNorm(int pid, PCB** retPtr) {
     // Find
     int targetPid = pid;
+    List_first(NormPrioListP);
     PCB* targetPCBPtr = List_search(NormPrioListP, compare_pid, &targetPid);
 
     if (targetPCBPtr == NULL) {
@@ -213,6 +233,7 @@ int FindAndRemovePrioNorm(int pid, PCB** retPtr) {
 int FindAndRemovePrioLow(int pid, PCB** retPtr) {
     // Find
     int targetPid = pid;
+    List_first(LowPrioListP);
     PCB* targetPCBPtr = List_search(LowPrioListP, compare_pid, &targetPid);
 
     if (targetPCBPtr == NULL) {

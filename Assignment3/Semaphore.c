@@ -102,6 +102,7 @@ int Semaphore_Findpid(int pid, PCB** retPtr) {
         if (semaphoreArrayPtr[i] == NULL) {
             continue;
         }
+        List_first(semaphoreArrayPtr[i]->processList);
         targetPCBPtr = List_search(semaphoreArrayPtr[i]->processList, compare_pid, &targetPid);
         if (targetPCBPtr != NULL) {
             // Found the pid
@@ -123,6 +124,7 @@ int Semaphore_FindAndRemovepid(int pid, PCB** retPtr) {
         if (semaphoreArrayPtr[i] == NULL) {
             continue;
         }
+        List_first(semaphoreArrayPtr[i]->processList);
         targetPCBPtr = List_search(semaphoreArrayPtr[i]->processList, compare_pid, &targetPid);
         if (targetPCBPtr != NULL) {
             targetPCBPtr = List_remove(semaphoreArrayPtr[i]->processList);

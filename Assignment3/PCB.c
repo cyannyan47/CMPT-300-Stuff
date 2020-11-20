@@ -161,5 +161,5 @@ void PCB_PrintInfo(PCB* ptrPCB) {
         break;
     }
     printf("Process current state: %s\n", state);
-    printf("Process priority (0.High; 1.Norm; 2.Low): %d", ptrPCB->prio);
+    printf("Process priority (0.High; 1.Norm; 2.Low): %d\n", ptrPCB->prio);
 }

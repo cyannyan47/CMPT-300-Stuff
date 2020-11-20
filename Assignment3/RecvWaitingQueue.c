@@ -30,7 +30,13 @@ int AddToRecvList(PCB* procP) {
 
 int FindRecvInQueue(int pid, PCB** retPtr) {
     int targetPid = pid;
+    List_first(recvList);
     PCB* targetPCBPtr = List_search(recvList, compare_pid, &targetPid);
+    if (targetPCBPtr == NULL) {
+        *retPtr = NULL;
+        return RECV_FAIL;
+    }
+
     *retPtr = targetPCBPtr;
     return RECV_SUCCESS;
 }
@@ -38,6 +44,7 @@ int FindRecvInQueue(int pid, PCB** retPtr) {
 int FindAndRemoveRecvInQueue(int pid, PCB** retPtr) {
     // Find
     int targetPid = pid;
+    List_first(recvList);
     PCB* targetPCBPtr = List_search(recvList, compare_pid, &targetPid);
 
     if (targetPCBPtr == NULL) {
