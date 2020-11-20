@@ -36,6 +36,10 @@ bool CLI_IsInitExited() {
 void CLI_Create(int prio) {
     // Create a PCB struct
     // Newly created process is READY by default
+    if (prio < 0 || prio > 2) {
+        printf("Fail: Invalid prio int\n");
+        return;
+    }
     PCB* newProcPtr = PCB_Create(prio);
 
     // Run the process immediately when the process init is running
@@ -45,15 +49,19 @@ void CLI_Create(int prio) {
 
         // Make init proc ready
         PCB_Ready(initProc);
+        printf("Success: Running the newly created process from init process\n");
         return;
     }
 
     // Put the new PCB in the ready queue
     PCB_Ready(newProcPtr);
     if (AddPCBtoReadyQueue(newProcPtr) == READYQ_FAIL) {
+        printf("Fail: Fail to add the new process to ready queue\n");
+        printf("Terminating process instance\n");
         PCB_Free(newProcPtr);
         newProcPtr = NULL;
     }
+    printf("Success: Created a new process and added to the ready queue\n");
 }
 
 void CLI_Fork() {
@@ -67,9 +75,12 @@ void CLI_Fork() {
     // Put the new PCB in the ready queue
     PCB_Ready(newProcPtr);
     if (AddPCBtoReadyQueue(newProcPtr) == READYQ_FAIL) {
+        printf("Fail: Fail to add the new process to ready queue\n");
+        printf("Terminating process instance\n");
         PCB_Free(newProcPtr);
         newProcPtr = NULL;
     }
+    printf("Success: Forked a new process and added to the ready queue\n");
 }
 
 void CLI_Kill(int pid) {
@@ -120,13 +131,15 @@ void CLI_Kill(int pid) {
     }
 
     if (status == SEM_FAIL) {
-        printf("Can't find process pid %d\n", pid);
+        printf("Fail: Can't find process with pid %d in system. Cancelling Kill command\n", pid);
         return;
     } else {
         printf("Found process pid %d\nFreeing process\n", pid);
 
         PCB_Free(procP);
         procP = NULL;
+
+        printf("Success: Killed process with pid %d in system.\n", pid);
         return;
     }
 }
