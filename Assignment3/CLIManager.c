@@ -217,6 +217,7 @@ void CLI_Send(int pid, char *msg) {
     PCB* receiverProcPtr = NULL;
     // From running proc sendTo another proc
     // Can't send a message to itself
+    PCB* nextPCB;
     if (runningProc->pid == pid) {
         // Record the message in receiving PCB
         PCB_RecvMsgFrom(receiverProcPtr, runningProc->pid, msg);
@@ -227,7 +228,6 @@ void CLI_Send(int pid, char *msg) {
             printf("Fail to add running process to send waiting list\n");
         };
 
-        PCB* nextPCB;
         // Get the next process from scheduler
         runningProc = NULL;
         if (ScheduleNextPCB(&nextPCB) == READYQ_FAIL) {
@@ -258,7 +258,6 @@ void CLI_Send(int pid, char *msg) {
             printf("Fail to add running process to send waiting list\n");
         };
 
-        PCB* nextPCB;
         // Get the next process from scheduler
         runningProc = NULL;
         if (ScheduleNextPCB(&nextPCB) == READYQ_FAIL) {
@@ -286,7 +285,6 @@ void CLI_Send(int pid, char *msg) {
             printf("Fail to add running process to send waiting list\n");
         };
 
-        PCB* nextPCB;
         // Get the next process from scheduler
         runningProc = NULL;
         if (ScheduleNextPCB(&nextPCB) == READYQ_FAIL) {
@@ -312,7 +310,6 @@ void CLI_Send(int pid, char *msg) {
             printf("Fail to add running process to send waiting list\n");
         };
 
-        PCB* nextPCB;
         // Get the next process from scheduler
         runningProc = NULL;
         if (ScheduleNextPCB(&nextPCB) == READYQ_FAIL) {
@@ -338,7 +335,6 @@ void CLI_Send(int pid, char *msg) {
             printf("Fail to add running process to send waiting list\n");
         };
 
-        PCB* nextPCB;
         // Get the next process from scheduler
         runningProc = NULL;
         if (ScheduleNextPCB(&nextPCB) == READYQ_FAIL) {

@@ -71,7 +71,7 @@ void PrintAllSendStatus() {
     currProc = List_first(sendList);
     while (currProc != NULL) {
         printf("(%d) ->\t", currProc->pid);
-        List_next(sendList);
+        currProc = List_next(sendList);
     }
     printf("<List end>\n");
 }

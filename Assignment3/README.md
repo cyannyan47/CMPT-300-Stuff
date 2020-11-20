@@ -47,46 +47,55 @@ If it is, then the simulation stops.
 Reports: Success when exit the running process, Fail when tring to exit the init while there are other processes waiting
 
 # Command Q
-Inputs:
-Actions:
-Reports:
+Inputs: N/A
+Actions: Put the running process to ready queue, schedule the next process
+If there are no processes in queue and the init process is running, continue to run the init process
+Reports: Success when schedule the next process and put the current process back to the ready queues
 
 # Command S
-Inputs:
-Actions:
-Reports:
+Inputs: int pid of the receiver, char* msg (maximum 40 characters)
+Actions: This command will try to find if the receiver exists in the system.
+Then if the receiver is waiting by calling R, this command will unblock the receiver and send the message
+IF the receiver is not waiting by calling R, this command will just send the message
+Then the running process block itself, waiting for a reply from any process
+And the scheduler will try finding the next process
+Can't let the init command call
+Reports: Success when sent message and block running process, Fail when can't send message or block the running process
 
 # Command R
-Inputs:
-Actions:
-Reports:
+Inputs: N/A
+Actions: This command will block the running process, schedule the next process
+The blocked process will wait until receive a message from and process sending with S command
+Can't let the init command call
+Reports: (once msg is received) the message text and source of message
 
 # Command Y
-Inputs:
-Actions:
-Reports:
+Inputs: int pid of the process to reply to, char* msg (message with 40 char max)
+Actions: This command will unblock waiting sender process, put it back to the ready queue and deliver reply
+The reply message will be shown at the next time the sender process runs
+Reports: Fail when can't send the reply message
 
 # Command N
-Inputs:
-Actions:
-Reports:
+Inputs: int semID (ranging from 0 to 4)
+Actions: initialize a new semaphore
+Reports: Fail when semID is out of bound or if the semaphore has already been initialized
 
 # Command P
-Inputs:
-Actions:
-Reports:
+Inputs: int semID
+Actions: perform semaphore P command on running process
+Reports: Fail when semaphore is not initialized or semID out of bound
 
 # Command V
-Inputs:
-Actions:
-Reports:
+Inputs: int semID
+Actions: perform semaphore V command on running process
+Reports: Fail when semaphore is not initialized or semID out of bound
 
 # Command I
-Inputs:
-Actions:
-Reports:
+Inputs: int pid
+Actions: Print out process pid info
+Reports: see Actions
 
 # Command T
-Inputs:
-Actions:
-Reports:
+Inputs: N/A
+Actions: display all process queues and their contents
+Reports: see Actions

@@ -180,7 +180,7 @@ void Semaphore_PrintStatus() {
         currProc = List_first(semaphoreArrayPtr[i]->processList);
         while (currProc != NULL) {
             printf("(%d) ->\t", currProc->pid);
-            List_next(semaphoreArrayPtr[i]->processList);
+            currProc = List_next(semaphoreArrayPtr[i]->processList);
         }
         printf("<Semaphore Out>\n");
     }

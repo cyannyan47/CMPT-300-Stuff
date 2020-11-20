@@ -71,7 +71,7 @@ void PrintAllRecvStatus() {
     currProc = List_first(recvList);
     while (currProc != NULL) {
         printf("(%d) ->\t", currProc->pid);
-        List_next(recvList);
+        currProc = List_next(recvList);
     }
     printf("<List end>\n");
 }
