@@ -57,6 +57,7 @@ PCB* PCB_Copy(PCB* ptrPCB) {
 }
 
 void PCB_Run(PCB* ptrPCB) {
+    printf("Running process pid %d\n", ptrPCB->pid);
     ptrPCB->currState = RUNNING;
     if (ptrPCB->repl_info != NULL) {
         printf("Received reply: %s\nFrom pid: %d", ptrPCB->repl_info->msg, ptrPCB->repl_info->source);
@@ -111,8 +112,6 @@ void PCB_RecvMsgFrom(PCB* ptrPCB, int sourcePID, char* msg) {
     ptrPCB->recv_info->source = sourcePID;
     strcpy(ptrPCB->recv_info->msg, msg);
 }
-
-void PCB_ReadRecvMsg(PCB* ptrPCB);
 
 int PCB_ReplyToSender(PCB* ptrPCB, int sourcePID, char* msg) {
     if (ptrPCB->currState != RUNNING) {

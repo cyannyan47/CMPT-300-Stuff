@@ -61,7 +61,7 @@ void CLI_Create(int prio) {
         PCB_Free(newProcPtr);
         newProcPtr = NULL;
     }
-    printf("Success: Created a new process and added to the ready queue\n");
+    printf("Success: Created a new process pid %d and added to the ready queue\n", newProcPtr->pid);
 }
 
 void CLI_Fork() {
@@ -89,20 +89,20 @@ void CLI_Kill(int pid) {
         return;
     }
 
-    // // Check running process
-    // if (runningProc == initProc) {
-    //     // Kill running proc
-    //     PCB* runningProcToKill = runningProc;
-    //     PCB_Free(runningProcToKill);
-    //     runningProcToKill = NULL;
-        
-    //     // Find the next proc to run
-    //     if (ScheduleNextPCB(&runningProc) == READYQ_FAIL) {
-    //         printf("No more process in queue\n");
-    //         printf("Running init proc\n");
-    //         runningProc = initProc;
-    //     }
-    // }
+    if (runningProc->pid == pid) {
+        // Prepare the next process in ready queue
+        PCB* nextPCB;
+        if (ScheduleNextPCB(&nextPCB) == READYQ_FAIL) {
+            printf("Can't find next proc in ready queue\nRunning init process\n");
+            PCB_Run(initProc);
+            runningProc = initProc;
+            return;
+        }
+
+        PCB_Run(nextPCB);
+        runningProc = nextPCB;
+        return;
+    }
 
     PCB* procP;
     int status;
@@ -194,6 +194,14 @@ void CLI_Quantum() {
         return;
     }
 
+    printf("Putting the current running process back to the ready queue\n");
+    PCB* nextInQueue = runningProc;
+    PCB_Ready(nextInQueue);
+    if (AddPCBtoReadyQueue(nextInQueue) == READYQ_FAIL) {
+        printf("Fail: Fail to add the new process to ready queue\n");
+        printf("Continue to run the next process\n");
+    }
+    
     printf("Running the next process in ready queue\n");
     PCB_Run(nextPCB);
     runningProc = nextPCB;
@@ -406,6 +414,11 @@ void CLI_SemNew(int semID) {
 }
 
 void CLI_SemP(int semID) {
+    if (runningProc == initProc) {
+        printf("Fail: init process can't use P\n");
+        return;
+    }
+
     int status = Semaphore_P(semID, runningProc);
     if (status == SEM_FAIL) {
         printf("P command failed\n");
@@ -485,12 +498,13 @@ void CLI_ProcInfo(int pid) {
 void CLI_TotalInfo() {
     printf("Ready queue status:\n");
     PrintAllReadyQStatus();
-    printf("Semaphore queue status:\n");
+    printf("\nSemaphore queue status:\n");
     Semaphore_PrintStatus();
-    printf("Process Blocked by receive:\n");
+    printf("\nProcess Blocked by receive:\n");
     PrintAllRecvStatus();
-    printf("Process Blocked by send:\n");
+    printf("\nProcess Blocked by send:\n");
     PrintAllSendStatus();
+    printf("\n");
 }
 
 void CLI_End() {

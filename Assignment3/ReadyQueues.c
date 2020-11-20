@@ -249,27 +249,29 @@ bool IsAllReadyQueueEmpty() {
 
 void PrintAllReadyQStatus() {
     PCB* currProc;
-    printf("High priority queue: <Queue in>\t");
+    printf("High priority queue: <Queue in> ");
     currProc = List_first(HighPrioListP);
     while (currProc != NULL) {
         printf("(%d) ->\t", currProc->pid);
-        List_next(HighPrioListP);
+        currProc = List_next(HighPrioListP);
     }
     printf("<Queue Out>\n");
+    currProc = NULL;
 
-    printf("Normal priority queue: <Queue in>\t");
+    printf("Normal priority queue: <Queue in> ");
     currProc = List_first(NormPrioListP);
     while (currProc != NULL) {
         printf("(%d) ->\t", currProc->pid);
-        List_next(NormPrioListP);
+        currProc = List_next(NormPrioListP);
     }
     printf("<Queue Out>\n");
+    currProc = NULL;
 
-    printf("Low priority queue: <Queue in>\t");
+    printf("Low priority queue: <Queue in> ");
     currProc = List_first(LowPrioListP);
     while (currProc != NULL) {
         printf("(%d) ->\t", currProc->pid);
-        List_next(LowPrioListP);
+        currProc = List_next(LowPrioListP);
     }
     printf("<Queue Out>\n");
 }
