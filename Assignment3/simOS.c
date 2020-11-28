@@ -9,7 +9,7 @@ int main() {
 
     while (!CLI_IsInitExited()) {
         // Accept CLI in here
-        int numInput;
+        int numInput, numInput2;
         char msg[40];
         printf("Enter your command: ");
         char command;
@@ -30,7 +30,7 @@ int main() {
                 printf("Kill: Enter process' pid\n");
                 scanf("%d", &numInput);
                 getchar();
-                CLI_Create(numInput);
+                CLI_Kill(numInput);
                 break;
             case 'E':
                 printf("Exit: Exiting current process\n");
@@ -58,13 +58,16 @@ int main() {
                 getchar();
                 printf("Reply: Enter reply message\n");
                 fgets(msg, 40, stdin);
-                CLI_Send(numInput, msg);
+                CLI_Reply(numInput, msg);
                 break;
             case 'N':
                 printf("New Semaphore: Enter semaphore ID (From 0 to 4)\n");
                 scanf("%d", &numInput);
                 getchar();
-                CLI_SemNew(numInput);
+                printf("New Semaphore: Enter semaphore initial value\n");
+                scanf("%d", &numInput2);
+                getchar();
+                CLI_SemNew(numInput, numInput2);
                 break;
             case 'P':
                 printf("Semaphore P: Enter initialized semaphore ID\n");

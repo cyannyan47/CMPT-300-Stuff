@@ -60,7 +60,7 @@ void PCB_Run(PCB* ptrPCB) {
     printf("Running process pid %d\n", ptrPCB->pid);
     ptrPCB->currState = RUNNING;
     if (ptrPCB->repl_info != NULL) {
-        printf("Received reply: %s\nFrom pid: %d", ptrPCB->repl_info->msg, ptrPCB->repl_info->source);
+        printf("Received reply: %s\nFrom pid: %d\n", ptrPCB->repl_info->msg, ptrPCB->repl_info->source);
 
         free(ptrPCB->repl_info);
         ptrPCB->repl_info = NULL;
@@ -78,7 +78,7 @@ int PCB_RunRecv(PCB* ptrPCB) {
     }
 
     // "Running" the receive command
-    printf("Received message: %s\nFrom pid: %d", ptrPCB->recv_info->msg, ptrPCB->recv_info->source);
+    printf("Received message: %s\nFrom pid: %d\n", ptrPCB->recv_info->msg, ptrPCB->recv_info->source);
 
     // Clearing recv_info after successfully received message
     free(ptrPCB->recv_info);
@@ -114,18 +114,14 @@ void PCB_RecvMsgFrom(PCB* ptrPCB, int sourcePID, char* msg) {
 }
 
 int PCB_ReplyToSender(PCB* ptrPCB, int sourcePID, char* msg) {
-    if (ptrPCB->currState != RUNNING) {
-        printf("Can't reply message because process is not running\n");
-        return PCB_FAIL;
-    }
     // Initialize if PCB doesn't hold any message from any sender
-    if (ptrPCB->recv_info == NULL) {
-        ptrPCB->recv_info = (Comms_info*)malloc(sizeof(Comms_info));
-        ptrPCB->recv_info->msg = (char*)malloc(sizeof(char) * MAX_MSG_LENGTH);
+    if (ptrPCB->repl_info == NULL) {
+        ptrPCB->repl_info = (Comms_info*)malloc(sizeof(Comms_info));
+        ptrPCB->repl_info->msg = (char*)malloc(sizeof(char) * MAX_MSG_LENGTH);
     }
 
-    ptrPCB->recv_info->source = sourcePID;
-    strcpy(ptrPCB->recv_info->msg, msg);
+    ptrPCB->repl_info->source = sourcePID;
+    strcpy(ptrPCB->repl_info->msg, msg);
     return PCB_SUCCESS;
 }
 

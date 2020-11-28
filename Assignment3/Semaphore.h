@@ -22,7 +22,7 @@ struct Semaphore_s {
 
 void Semaphore_Init();
 
-int Semaphore_New(int semID);
+int Semaphore_New(int semID, int initValue);
 
 int Semaphore_P(int semID, PCB* procP);
 

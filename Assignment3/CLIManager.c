@@ -395,15 +395,16 @@ void CLI_Reply(int pid, char *msg) {
         printf("Can't reply to no sender\n");
         return;
     }
+
     PCB_Ready(senderProcPtr);
-    status = PCB_ReplyToSender(senderProcPtr, pid, msg);
-    if (status == PCB_FAIL) {
-        return;
+    if (AddPCBtoReadyQueue(senderProcPtr) == READYQ_FAIL) {
+        printf("Fail: Fail to add the sender process to ready queue\n");
     }
+    status = PCB_ReplyToSender(senderProcPtr, pid, msg);
 }
 
-void CLI_SemNew(int semID) {
-    int status = Semaphore_New(semID);
+void CLI_SemNew(int semID, int initValue) {
+    int status = Semaphore_New(semID, initValue);
     if (status == SEM_FAIL) {
         printf("N command failed\n");
     }
@@ -453,7 +454,7 @@ void CLI_SemV(int semID) {
 
     // If V command unblocks a process
     if (UnblockedProc != NULL) {
-        printf("Unblocking process %d", UnblockedProc->pid);
+        printf("Unblocking process %d\n", UnblockedProc->pid);
         PCB_Ready(UnblockedProc);
         if (AddPCBtoReadyQueue(UnblockedProc) == READYQ_FAIL) {
             printf("Can't add the unblocked process to ready queue\n");

@@ -28,7 +28,7 @@ void CLI_Receive();
 
 void CLI_Reply(int pid, char *msg);
 
-void CLI_SemNew(int semID);
+void CLI_SemNew(int semID, int initValue);
 
 void CLI_SemP(int semID);
 

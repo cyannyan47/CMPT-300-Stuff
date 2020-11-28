@@ -88,6 +88,8 @@ Reports: Fail when semaphore is not initialized or semID out of bound
 # Command V
 Inputs: int semID
 Actions: perform semaphore V command on running process
+If init process unblocks a process, the process will run at next quantum time
+i.e. the unblocked process will not pre-emptively stop init process to run until next Q time
 Reports: Fail when semaphore is not initialized or semID out of bound
 
 # Command I
