@@ -14,5 +14,9 @@ all: UnixLs
 UnixLs: UnixLs.o
 	$(CC) -o UnixLs UnixLs.o
 
+infodemo: infodemo.o
+	$(CC) -o infodemo infodemo.o
+
 clean:
 	rm -f core *.o UnixLs
+	rm -f core *.o infodemo
