@@ -21,7 +21,7 @@ static int currentIndex = 0;
 static bool l_flag = false;
 static bool R_flag = false;
 static bool i_flag = false;
-// static bool showCurrDir = false;
+static bool showBaseDir = false;
 
 // IS a stack according to multiple paths ls print order
 static List* pathsList;
@@ -32,6 +32,26 @@ static void pathsListFree(void *pPath) {
 void printGroupName(gid_t grpNum);
 void printUserName(uid_t uid);
 void printLastModifiedTime(time_t t);
+void PrintDir(char* path);
+void PrintFileInfo(char* path, char* filename);
+
+static bool isDir(char* path) {
+    struct stat pathstat;
+    lstat(path, &pathstat);
+    if (S_ISDIR(pathstat.st_mode)) {
+        return true;
+    }
+    return false;
+}
+
+static bool isLink(char* path) {
+    struct stat pathstat;
+    lstat(path, &pathstat);
+    if (S_ISLNK(pathstat.st_mode)) {
+        return true;
+    }
+    return false;
+}
 
 
 void PrintSetup(int argc, char* argv[]) {
@@ -48,14 +68,23 @@ void PrintSetup(int argc, char* argv[]) {
             exit(EXIT_FAILURE);
         }
     }
+    
+    int numOfDir = 0;
 
     for (currentIndex = optind; currentIndex < argc; currentIndex++) {
         // Assuming there are no flags after path arguments
+        if (isDir(argv[currentIndex])) {
+            numOfDir++;
+        }
         List_append(pathsList, argv[currentIndex]);
     }
 
     if (List_count(pathsList) == 0) {
         List_append(pathsList, ".");
+    }
+
+    if (numOfDir > 1) {
+        showBaseDir = true;
     }
 }
 
@@ -63,16 +92,29 @@ void PrintManager() {
     while (List_count(pathsList) != 0) {
         // Get path from stack
         char* path = List_trim(pathsList);
-        // Check if path is file or symlink file
-        PrintFileInfo(path);
 
+        if (isLink(path)) {
+            if (l_flag) {
+                goto normal;
+            }
+            struct stat beginstat;
+            stat(path, &beginstat);
+            if (S_ISDIR(beginstat.st_mode)) {
+                PrintDir(path);
+            } else {
+                PrintFileInfo(path, NULL);
+            }
+        }
+
+        normal:
         // Path is directory or symlink directory
-        // PrintDir(path);
-
-        // Get path from list
+        if (isDir(path)) {
+            PrintDir(path);
+        } else {
+            PrintFileInfo(path, NULL);
+        }
+        
     }
-    
-
 }
 
 void ClosePrint() {
@@ -84,17 +126,76 @@ void PrintDir(char* path) {
     DIR *dir;
     struct dirent *dp;
 
+    // Printing
     if ((dir = opendir(path)) == NULL) {
         perror ("Cannot open .");
         exit (1);
     }
-    while ((dp = readdir(dir)) != NULL) {
-        PrintFileInfo(dp->d_name);
+    if (R_flag) {
+        printf("%s:\n", path);
+    } else {
+        if (showBaseDir) {
+            printf("%s:\n", path);
+        }
     }
+    while ((dp = readdir(dir)) != NULL) {
+        if (dp->d_name[0] == '.') {
+            continue;
+        }
+        // Check if path has '/' add a back
+        int pathLen = strlen(path);
+        char tempPath[pathLen + 2];
+        if (path[pathLen] != '/') {
+            pathLen += 1;
+            strcpy(tempPath, path);
+            strcat(tempPath, "/");
+        }
+        int dpLen = strlen(dp->d_name);
+        int totalLen = pathLen + dpLen;
+
+        char fullPath[totalLen + 1];
+        strcpy(fullPath, tempPath);
+        strcat(fullPath, dp->d_name);
+        PrintFileInfo(fullPath, dp->d_name);
+    }
+    printf("\n");
     closedir(dir);
+
+    // Pre-order traversal when R_flag is set
+    if (R_flag) {
+        if ((dir = opendir(path)) == NULL) {
+            perror ("Cannot open .");
+            exit (1);
+        }
+        while ((dp = readdir(dir)) != NULL) {
+            if (dp->d_name[0] == '.') {
+                continue;
+            }
+            // Check if path has '/' add a back
+            int pathLen = strlen(path);
+            char tempPath[pathLen + 2];
+            if (path[pathLen] != '/') {
+                pathLen += 1;
+                strcpy(tempPath, path);
+                strcat(tempPath, "/");
+            }
+            int dpLen = strlen(dp->d_name);
+            int totalLen = pathLen + dpLen;
+
+            char fullPath[totalLen + 1];
+            strcpy(fullPath, tempPath);
+            strcat(fullPath, dp->d_name);
+            
+            if (isDir(fullPath)) {
+                PrintDir(fullPath);
+            }
+
+        }
+        closedir(dir);
+    }
 }
 
-void PrintFileInfo(char* path) {
+void PrintFileInfo(char* path, char* filename) {
     //Initializing variables
     struct stat filestat;
     lstat(path, &filestat);
@@ -131,7 +232,8 @@ void PrintFileInfo(char* path) {
         printf(" ");    // Spacing
 
         // number of hard links
-        printf("%lu", filestat.st_nlink);
+        int len = snprintf(NULL, 0, "%lu", filestat.st_nlink);
+        printf("%-.*lu", len, filestat.st_nlink);
         printf(" ");    // Spacing
 
         // user name
@@ -143,21 +245,32 @@ void PrintFileInfo(char* path) {
         printf(" ");    // Spacing
 
         // file size
-        printf("%-10lu", filestat.st_size);
+        len = snprintf(NULL, 0, "%lu", filestat.st_size);
+        printf("%-.*lu", len, filestat.st_size);
         printf(" ");    // Spacing
 
         // lastest modified time
         printLastModifiedTime(filestat.st_mtime);
         printf(" ");    // Spacing
     }
-
+    
     if (S_ISLNK(filestat.st_mode)) {
         char* linkname = malloc(filestat.st_size + 1);
         readlink(path, linkname, filestat.st_size + 1);
         linkname[filestat.st_size] = '\0';
-        printf("%s -> %s\n", path, linkname);
+        if (filename) {
+            printf("%s -> %s\n", filename, linkname);
+        } else {
+            printf("%s -> %s\n", path, linkname);
+        }
+        
+    } else {
+        if (filename) {
+            printf("%s\n", filename);
+        } else {
+            printf("%s\n", path);
+        }
     }
-    printf("%s\n", path);
 }
 
 void printGroupName(gid_t grpNum) {
