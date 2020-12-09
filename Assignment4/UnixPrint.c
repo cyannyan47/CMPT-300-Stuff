@@ -21,7 +21,7 @@ static int currentIndex = 0;
 static bool l_flag = false;
 static bool R_flag = false;
 static bool i_flag = false;
-static bool showCurrDir = false;
+// static bool showCurrDir = false;
 
 // IS a stack according to multiple paths ls print order
 static List* pathsList;
@@ -67,7 +67,7 @@ void PrintManager() {
         PrintFileInfo(path);
 
         // Path is directory or symlink directory
-
+        // PrintDir(path);
 
         // Get path from list
     }
@@ -88,7 +88,7 @@ void PrintDir(char* path) {
         perror ("Cannot open .");
         exit (1);
     }
-    while ((dp = readdir (dir)) != NULL) {
+    while ((dp = readdir(dir)) != NULL) {
         PrintFileInfo(dp->d_name);
     }
     closedir(dir);
@@ -112,7 +112,7 @@ void PrintFileInfo(char* path) {
         if (S_ISDIR(filestat.st_mode)) {
             printf("d");
         }
-        else if (S_ISDIR(filestat.st_mode)) {
+        else if (S_ISLNK(filestat.st_mode)) {
             printf("l");
         }
         else {
@@ -151,6 +151,12 @@ void PrintFileInfo(char* path) {
         printf(" ");    // Spacing
     }
 
+    if (S_ISLNK(filestat.st_mode)) {
+        char* linkname = malloc(filestat.st_size + 1);
+        readlink(path, linkname, filestat.st_size + 1);
+        linkname[filestat.st_size] = '\0';
+        printf("%s -> %s\n", path, linkname);
+    }
     printf("%s\n", path);
 }
 
